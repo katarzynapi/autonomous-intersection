@@ -1,5 +1,6 @@
 import math
 from enum import Enum
+import mapDrawing as mapdraw
 
 class CellType(Enum):
     NULL = 0
@@ -170,19 +171,25 @@ class GeneralAgent:
 # model
 
 class IntersectionModel:
-
-    def __init__(self, min_coords, max_coords):
+    def __init__(self, min_x_coords, min_y_coords, max_x_coords, max_y_coords):
+        self.image = None
         self.steps = 0
         self.time = 0
         self.agents = []
-        self.grid = Grid(min_coords, max_coords)    # współrzędne lewego dolnego i prawego górnego rogu; wyznaczają wielkość mapy
-
-    def generate_agents():
+        self.grid = Grid(min_x_coords, min_y_coords, max_x_coords, max_y_coords)    # współrzędne lewego dolnego i prawego górnego rogu; wyznaczają wielkość mapy
+    #add new agent with default parameters (can be expanded with additional parameters)
+    def addAgent(self):
+        self.agents.append(GeneralAgent())
+    # show agent movement 
+    def showAgentMovement(self, id, width, start_point, end_point):
+        self.agents[id].head = start_point
+        self.agents[id].tail = end_point
+        mapdraw.drawNewLine(start_point, end_point, width, self.image)
+    def generate_agents(self):
         #TODO
         pass
-        print ("to jest tylko po to, żeby nie leciał błąd wcięcia") # można użyć słowa pass :)
 
-    def remove_agents():
+    def remove_agents(self):
         for a in self.agents:
             if a.reached_destination():
                 self.agents.remove(a)
