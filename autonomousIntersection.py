@@ -15,12 +15,18 @@ class Colour(Enum):
     RED = 1
     GREEN = 2
 
+class IfBorder(Enum):
+    NOT = 0
+    INPUT = 1
+    OUTPUT = 2
+
 #_________________________________________________________________________
 # map
 
 class Cell:
-    def __init__(self, x_coords=0.0, y_coords=0.0, surface_type=CellType.NULL):
+    def __init__(self, x_coords=0.0, y_coords=0.0, surface_type=CellType.NULL, if_border = IfBorder.NOT):
         self.coords = Coordinates(x_coords, y_coords)
+        self.if_border = IfBorder.NOT
         self.surface_type = surface_type
         self.f_neighbour = None           # forward
         self.b_neighbour = None           # backward
@@ -113,17 +119,18 @@ class GeneralAgent:
     def how_many_cells():
         return round(self.length)
 
-    def reached_destination():
+    def reached_destination(self):
         #jeśli przód agenta jest blisko celu, to cel uznajemy za osiągnięty
-        if self.location[0].coords.calculate_distance(self.destination) > self.length:
-            return false
+        #if self.location[0].coords.calculate_distance(self.destination) > self.length:
+        if self.head.f_neighbour == None:
+            return True
         else:
-            return true
+            return False
 
     def find_path():
         #TODO
-        # tutaj jakiś ambitny algorytm wyznaczający trasę w oparciu o lokalizację i cel
-        print ("to jest tylko po to, żeby nie leciał błąd wcięcia")        
+        # algorytm wyznaczający trasę w oparciu o lokalizację i cel
+        pass      
 
     def visible_path():
         # powinno zwracać ten fragment wyznaczonej trasy, który agent widzi
@@ -142,30 +149,32 @@ class GeneralAgent:
     # nie ogarniam tych wzorów z artykułu :(
     def compute_new_velocity():
         #TODO
-        print ("to jest tylko po to, żeby nie leciał błąd wcięcia")
+        pass
 
     def compute_new_acceleration():
         #TODO
-        print ("to jest tylko po to, żeby nie leciał błąd wcięcia")
+        pass
 
     def compute_new_location():
         #TODO
-        print ("to jest tylko po to, żeby nie leciał błąd wcięcia")
+        pass
 
     #aby wszyscy ruszali się jednocześnie, najpierw trzeba policzyć nowe parametry, a jak wszystkie będą policzone, to je przypisać. Dlatego dwie metody (wzorowałam się na SimultaneousActivation z mesa)
 
     def step(self):
-        self.scan_for_obstacles()
-        if any(isinstance(x, Blockade) for x in self.obstacles):
-            self.find_path()
-        self.compute_new_velocity()
-        self.compute_new_acceleration()
-        self.compute_new_location()
+        pass
+        #self.scan_for_obstacles()
+        #if any(isinstance(x, Blockade) for x in self.obstacles):
+            #self.find_path()
+        #self.compute_new_velocity()
+        #self.compute_new_acceleration()
+        #self.compute_new_location()
 
     def advance(self):
         #TODO
-        # gdzieś tu trzeba jeszcze wywalić z path te komórki, które zostały za samochodem
-        print ("to jest tylko po to, żeby nie leciał błąd wcięcia")
+        # gdzieś tu trzeba jeszcze usunąć z path te komórki, które zostały za samochodem
+        self.head = self.head.f_neighbour
+        self.tail = self.tail.f_neighbour
         
 #_________________________________________________________________________
 # model
@@ -177,17 +186,15 @@ class IntersectionModel:
         self.time = 0
         self.agents = []
         self.grid = Grid(min_x_coords, min_y_coords, max_x_coords, max_y_coords)    # współrzędne lewego dolnego i prawego górnego rogu; wyznaczają wielkość mapy
-    #add new agent with default parameters (can be expanded with additional parameters)
-    def addAgent(self):
-        self.agents.append(GeneralAgent())
     # show agent movement 
-    def showAgentMovement(self, id, width, start_point, end_point):
-        self.agents[id].head = start_point
-        self.agents[id].tail = end_point
-        mapdraw.drawNewLine(start_point, end_point, width, self.image)
-    def generate_agents(self):
-        #TODO
-        pass
+    def showAgentMovement(self, id, width):
+        for a in self.agents:
+            start_point = a.head.getCoords()
+            end_point = a.tail.getCoords()
+            mapdraw.drawNewLine(start_point, end_point, width, self.image)
+    #add new agent with default parameters (can be expanded with additional parameters)
+    def generateAgent(self):
+        self.agents.append(GeneralAgent())
 
     def remove_agents(self):
         for a in self.agents:
@@ -200,4 +207,4 @@ class IntersectionModel:
         for a in self.agents:
             a.advance()
         self.steps += 1
-        self.time += 0.5                    # bo za artykułem Wąsa robimy update co pół sekundy
+        self.time += 0.5                    # bo za artykułem robimy update co pół sekundy
