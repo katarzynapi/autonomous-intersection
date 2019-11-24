@@ -1,0 +1,6 @@
+instrukcja:
+
+dodać agenta
+użyć funkcji place on grid, podając jako tail_position komórkę na brzegu mapy
+ustawić mu parametr path na dowolną listę komórek, po której da się przejechać -> ma się zaczynać tam, gdzie było tail_position, ale o tyle komórek dalej, ile wynosi długość auta
+dodać mu jako destination ostatnią komórkę z path
