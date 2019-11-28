@@ -77,24 +77,27 @@ class Coordinates:
         return math.sqrt((coords.x - self.x)^2 + (coords.y - self.y)^2)
 
 class Obstacle:
-    def __init__():
+    def __init__(self):
         self.location = None            # typ to Cell (nie Coordinates)
         self.visibility = 0.0
         self.agent_types = []
         self.speed_limit = 0.0
         
 class Lights(Obstacle):
-    def __init__():
+    def __init__(self):
         super.__init__()
         self.colour = Colour.GREEN
+
+    def change(self):
+        self.colour = Colour.GREEN if self.colour == Colour.RED else Colour.RED
         
 class Blockade(Obstacle):
     #przeszkoda, którą trzeba wyminąć
-    def __init__():
+    def __init__(self):
         super.__init__()
 
 class Crossing_Entering(Obstacle):
-    def __init__():
+    def __init__(self):
         super.__init__()
         self.for_which_road = []
         self.cells_to_check = []
@@ -117,11 +120,10 @@ class GeneralAgent:
         self.max_deceleration = -2
         self.length = 5.0
         self.visibility = 0.0           # z jakiej odległości widać agenta
-        self.field_of_view = 0.0        # na jaką odległość widzi agent
+        self.field_of_view = 80.0        # na jaką odległość widzi agent
         self.destination = None
         self.path = []                  # pierwsza komórka w path to któryś z przednich sąsiadów head
         self.obstacles = []
-        self.agent_on_path = None       # najbliższe auto przed
         self.how_many_cells_forward = 0
         self.new_velocity = 0.0
         self.new_acceleration = 0.0
@@ -135,10 +137,6 @@ class GeneralAgent:
             cell_to_add.agent = self
             self.location.insert(0,cell_to_add)
 
-    #powinno działać bez zaokrąglania, bo to dzielenie intów. W razie czego dodać round()
-    @property
-    def emergency_stopping_dist(self):
-        return math.pow(self.velocity, 2) / abs(self.max_deceleration)
 
     @property
     def head(self):
@@ -163,6 +161,10 @@ class GeneralAgent:
     def how_many_cells(self):
         return round(self.length)
 
+    def stopping_dist(self, dec):
+        # -abs(dec) jest po to, żeby opóźnienie można było podawać z minusem lub bez
+        return sum(list(range(self.velocity, 0, -abs(dec))))
+
     def reached_destination(self):
         #jeśli przód agenta jest blisko celu, to cel uznajemy za osiągnięty
         if self.location[0].coords.calculate_distance(self.destination.coords) < self.length:
@@ -180,16 +182,21 @@ class GeneralAgent:
         # powinno zwracać ten fragment wyznaczonej trasy, który agent widzi
         return [c for c in self.path if self.location[0].coords.calculate_distance(c.coords) > self.field_of_view]
 
-    def scan_for_obstacles():
+    def scan_for_obstacles(self):
         current_obstacles = []
-        for c in visible_path():
+        for c in self.visible_path():
             current_obstacles += c.obstacles
         self.obstacles = current_obstacles
+
+    def calc_path_distance(self, obstacle):
+        for c in self.visible_path():
+            if x in c.obstacles:
+                return index(c)+1
+        return 0
 
     def find_first_agent_on_path(self):
         return next((x.agent for x in self.visible_path() if x.agent is not None), None)
 
-    # na razie radosna wersja zakładająca, że na drodze są tylko inne auta i jedyna opcja to zwolnić
     def compute_new_location(self):
         self.how_many_cells_forward = int(round(self.velocity))
 
@@ -199,14 +206,36 @@ class GeneralAgent:
         else:
             self.new_velocity = max(self.velocity + self.acceleration, 0)
 
+    #gdzieś w tej funkcji radośnie przesądzam i trochę hardcoduję, że opóźnienie może być tylko -1 lub -2
     def compute_new_acceleration(self):
-        #TODO
-        pass
+        agent_on_path = find_first_agent_on_path()
+        lights = next((obs for obs in self.obstacles if isinstance(obj, Lights)), None)
+        l_dist = 10000           #jakaś losowa duża liczba - oznacza, że świateł/agenta nie ma (w założeniu nic nie jest tak daleko)
+        a_dist = 10000
+        if lights is not None and lights.colour == Colour.RED:
+            l_dist = calc_path_distance(lights)
+        if agent_on_path is not None:
+            a_dist = calc_path_distance(agent_on_path) + agent_on_path.stopping_dist(-2)
+        dist = min(a_dist, l_dist)
+        if dist > stopping_dist(-1)*2:
+            self.acceleration = 1 if self.velocity < 7 else 0
+        #elif dist > stopping_dist(-1)*1.5:
+            #self.acceleration = self.acceleration = max(self.acceleration, 0)
+        elif dist > stopping_dist(-1):
+            self.acceleration = 0
+        elif dist > stopping_dist(-2)+2:
+            self.acceleration = -1
+        elif dist >= stopping_dist(-2)-1:
+            self.acceleration = -2
+        else:
+            self.acceleration = max(self.acceleration, 0)
 
     def update_position(self):
         # powinno działać. testy by nie zaszkodziły
         # auto wjeżdża na tyle komórek path, ile wyznaczono na podstawie prędkości
-        new_car_part = self.path[0:self.how_many_cells_forward]
+        vel_len_diff = self.how_many_cells_forward - self.length
+        start = vel_len_diff if vel_len_diff >= 0 else 0
+        new_car_part = self.path[start:self.how_many_cells_forward]
         new_car_part.reverse()
         # dodajemy agenta dla nowych komórek
         for cell in new_car_part:
@@ -226,17 +255,17 @@ class GeneralAgent:
 
     def step(self):
         pass
-        #self.scan_for_obstacles()
+        self.scan_for_obstacles()
         #if any(isinstance(x, Blockade) for x in self.obstacles):
             #self.find_path()
         self.compute_new_location()
         self.compute_new_velocity()
-        #self.compute_new_acceleration()
+        self.compute_new_acceleration()
 
     def advance(self):
         self.update_position()
         self.velocity = self.new_velocity
-        #self.acceleration = self.new_acceleration
+        self.acceleration = self.new_acceleration
         
 #_________________________________________________________________________
 # model
@@ -248,7 +277,8 @@ class IntersectionModel:
         self.time = 0
         self.agents = []
         self.grid = Grid(min_x_coords, min_y_coords, max_x_coords, max_y_coords)    # współrzędne lewego dolnego i prawego górnego rogu; wyznaczają wielkość mapy
-    # show agent movement 
+    # show agent movement
+        self.lights = []
     def showAgentMovement(self, id, width):
         for a in self.agents:
             start_point = a.head.getCoords()
@@ -264,6 +294,9 @@ class IntersectionModel:
                 self.agents.remove(a)
 
     def step(self):
+        if time % 20 == 0:
+            for l in self.lights:
+                l.change()
         for a in self.agents:
             a.step()
         for a in self.agents:
