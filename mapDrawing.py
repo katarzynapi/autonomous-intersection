@@ -4,7 +4,8 @@ def drawNewCircle(i, j, image):
     cv2.imshow('image', image)
     cv2.waitKey(100)
 
-def drawNewLine(start_point, end_point, width, image):
-    image = cv2.line(image, start_point, end_point, (0, 0, 255), width)
+def drawNewLine(start_points, end_points, width, image):
+    for s, e in zip(start_points, end_points):
+        image = cv2.line(image, s, e, (0, 0, 255), width)
     cv2.imshow('image', image)
-    cv2.waitKey(3000)
+    cv2.waitKey(1000)

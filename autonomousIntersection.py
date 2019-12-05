@@ -284,10 +284,9 @@ class IntersectionModel:
     # show agent movement
         self.lights = []
     def showAgentMovement(self, id, width):
-        for a in self.agents:
-            start_point = a.head.getCoords()
-            end_point = a.tail.getCoords()
-            mapdraw.drawNewLine(start_point, end_point, width, self.image)
+        start_points = [a.head.getCoords() for a in self.agents]
+        end_points = [a.tail.getCoords() for a in self.agents]
+        mapdraw.drawNewLine(start_points, end_points, width, self.image)
     #add new agent with default parameters (can be expanded with additional parameters)
     def generateAgent(self):
         self.agents.append(GeneralAgent())
