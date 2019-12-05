@@ -51,6 +51,8 @@ class Grid:
     def __init__(self, min_x_coords, min_y_coords, max_x_coords, max_y_coords):
         self.coords_range = min_x_coords, min_y_coords, max_x_coords, max_y_coords
         self.cells = []
+        self.inputs = []
+        self.outputs = []
     
     def addCell(self, x_coords, y_coords, cell_type):
         self.cells.append(Cell(x_coords, y_coords, cell_type))
@@ -74,7 +76,7 @@ class Coordinates:
         return self.x, self.y
     
     def calculate_distance(self, coords):
-        return math.sqrt((coords.x - self.x)^2 + (coords.y - self.y)^2)
+        return math.sqrt((coords.x - self.x)**2 + (coords.y - self.y)**2)
 
 class Obstacle:
     def __init__(self):
@@ -85,7 +87,7 @@ class Obstacle:
         
 class Lights(Obstacle):
     def __init__(self):
-        super.__init__()
+        super(Obstacle).__init__()
         self.colour = Colour.GREEN
 
     def change(self):
@@ -163,7 +165,7 @@ class GeneralAgent:
 
     def stopping_dist(self, dec):
         # -abs(dec) jest po to, żeby opóźnienie można było podawać z minusem lub bez
-        return sum(list(range(self.velocity, 0, -abs(dec))))
+        return sum(list(range(int(self.velocity), 0, int(-abs(dec)))))
 
     def reached_destination(self):
         #jeśli przód agenta jest blisko celu, to cel uznajemy za osiągnięty
@@ -180,7 +182,8 @@ class GeneralAgent:
 
     def visible_path(self):
         # powinno zwracać ten fragment wyznaczonej trasy, który agent widzi
-        return [c for c in self.path if self.location[0].coords.calculate_distance(c.coords) > self.field_of_view]
+        return self.path
+        #return [c for c in self.path if self.location[0].coords.calculate_distance(c.coords) > self.field_of_view]
 
     def scan_for_obstacles(self):
         current_obstacles = []
@@ -190,7 +193,7 @@ class GeneralAgent:
 
     def calc_path_distance(self, obstacle):
         for c in self.visible_path():
-            if x in c.obstacles:
+            if x in c.obstacles: # co to jest x
                 return index(c)+1
         return 0
 
@@ -208,24 +211,24 @@ class GeneralAgent:
 
     #gdzieś w tej funkcji radośnie przesądzam i trochę hardcoduję, że opóźnienie może być tylko -1 lub -2
     def compute_new_acceleration(self):
-        agent_on_path = find_first_agent_on_path()
+        agent_on_path = self.find_first_agent_on_path()
         lights = next((obs for obs in self.obstacles if isinstance(obj, Lights)), None)
         l_dist = 10000           #jakaś losowa duża liczba - oznacza, że świateł/agenta nie ma (w założeniu nic nie jest tak daleko)
         a_dist = 10000
         if lights is not None and lights.colour == Colour.RED:
-            l_dist = calc_path_distance(lights)
+            l_dist = self.calc_path_distance(lights)
         if agent_on_path is not None:
-            a_dist = calc_path_distance(agent_on_path) + agent_on_path.stopping_dist(-2)
+            a_dist = self.calc_path_distance(agent_on_path) + self.agent_on_path.stopping_dist(-2)
         dist = min(a_dist, l_dist)
-        if dist > stopping_dist(-1)*2:
+        if dist > self.stopping_dist(-1)*2:
             self.acceleration = 1 if self.velocity < 7 else 0
         #elif dist > stopping_dist(-1)*1.5:
             #self.acceleration = self.acceleration = max(self.acceleration, 0)
-        elif dist > stopping_dist(-1):
+        elif dist > self.stopping_dist(-1):
             self.acceleration = 0
-        elif dist > stopping_dist(-2)+2:
+        elif dist > self.stopping_dist(-2)+2:
             self.acceleration = -1
-        elif dist >= stopping_dist(-2)-1:
+        elif dist >= self.stopping_dist(-2)-1:
             self.acceleration = -2
         else:
             self.acceleration = max(self.acceleration, 0)
@@ -235,7 +238,7 @@ class GeneralAgent:
         # auto wjeżdża na tyle komórek path, ile wyznaczono na podstawie prędkości
         vel_len_diff = self.how_many_cells_forward - self.length
         start = vel_len_diff if vel_len_diff >= 0 else 0
-        new_car_part = self.path[start:self.how_many_cells_forward]
+        new_car_part = self.path[int(start):int(self.how_many_cells_forward)]
         new_car_part.reverse()
         # dodajemy agenta dla nowych komórek
         for cell in new_car_part:
@@ -276,6 +279,7 @@ class IntersectionModel:
         self.steps = 0
         self.time = 0
         self.agents = []
+        self.paths = {}
         self.grid = Grid(min_x_coords, min_y_coords, max_x_coords, max_y_coords)    # współrzędne lewego dolnego i prawego górnego rogu; wyznaczają wielkość mapy
     # show agent movement
         self.lights = []
@@ -294,7 +298,7 @@ class IntersectionModel:
                 self.agents.remove(a)
 
     def step(self):
-        if time % 20 == 0:
+        if self.time % 20 == 0:
             for l in self.lights:
                 l.change()
         for a in self.agents:
