@@ -121,11 +121,11 @@ class Lights(Obstacle):
 class Blockade(Obstacle):
     #przeszkoda, którą trzeba wyminąć
     def __init__(self):
-        super.__init__()
+        super(Obstacle).__init__()
 
 class Crossing_Entering(Obstacle):
     def __init__(self):
-        super.__init__()
+        super(Obstacle).__init__()
         self.for_which_road = []
         self.cells_to_check = []
 
@@ -219,7 +219,8 @@ class GeneralAgent:
 
     def can_safely_change_to_other_path(self, other_path_fwd, other_path_bwd):
         #gdyby się okazało, że to wszystko wali błędami, to przerobimy na zwykłą pętlę for
-        (prev_dist, prev_vehicle) = next(((len(other_path_bwd)-1-i, x.agent) for i, x in other_path_bwd[::-1] if x.agent is not None), (None, None))
+        #zmiana other_path_bwd[::-1] na other_path_bwd[:-1]
+        (prev_dist, prev_vehicle) = next(((len(other_path_bwd)-1-i, x.agent) for i, x in other_path_bwd[:-1] if x.agent is not None), (None, None)) 
         (next_dist, next_vehicle) = next(((i+1, x.agent) for i, x in other_path_fwd if x.agent is not None), (None, None))
         if prev_vehicle is None:
             prev_safe = True
@@ -252,11 +253,10 @@ class GeneralAgent:
         return next((x.agent for x in self.visible_path() if x.agent is not None), None)
 
     def find_nearest_lights(self):
-        return next((obs for obs in self.obstacles if isinstance(obj, Lights)), None)
+        return next((obs for obs in self.obstacles if isinstance(obs, Lights)), None)
 
     def find_nearest_blockade(self):
-        return next((obs for obs in self.obstacles if isinstance(obj, Blockade)), None)
-
+        return next((obs for obs in self.obstacles if isinstance(obs, Blockade)), None)
 
     def update_route(self):
         if self.path.type == PathType.OPPOSITE:
@@ -291,13 +291,13 @@ class GeneralAgent:
                             self.path.type = PathType.MAIN
                             self.path.cells = main_bwd
                     else:
-                        avail_alt = [p for p in self.all_paths if p.type == PathType.ALTERNATIVE and (self.head.neighbour_r in p.cells or self.head.neighbour_l in p.cells)]
-                        for p in avail_path:
-                            neighbour_alt = self.head.neighbour_r if self.head.neighbour_r in p else self.head.neighbour_l
-                            start = p.index(neighbour_alt)
-                            alt_fwd = p[start+1:]
-                            alt_bwd = p[:start+1]
-                            if can_safely_change_to_other_path(alt_fwd, alt_bwd):
+                        avail_alt = [p for p in self.all_paths if p.type == PathType.ALTERNATIVE and (self.head.r_neighbour in p.cells or self.head.l_neighbour in p.cells)]
+                        for p in avail_alt: # zmiana avail_path na avail_alt
+                            neighbour_alt = self.head.r_neighbour if self.head.r_neighbour in p.cells else self.head.l_neighbour #zmiana p na p.cells
+                            start = p.cells.index(neighbour_alt) #zmiana p na p.cells
+                            alt_fwd = p.cells[start+1:] #zmiana p na p.cells
+                            alt_bwd = p.cells[:start+1] #zmiana p na p.cells
+                            if self.can_safely_change_to_other_path(alt_fwd, alt_bwd):
                                 self.path.type = PathType.ALTERNATIVE
                                 self.path.cells = alt_fwd
         self.scan_for_obstacles()
@@ -391,6 +391,7 @@ class IntersectionModel:
         self.grid = Grid(min_x_coords, min_y_coords, max_x_coords, max_y_coords)    # współrzędne lewego dolnego i prawego górnego rogu; wyznaczają wielkość mapy
     # show agent movement
         self.lights = []
+        self.obstacles = []
     def showAgentMovement(self, id, width):
         start_points = [a.head.getCoords() for a in self.agents]
         end_points = [a.tail.getCoords() for a in self.agents]

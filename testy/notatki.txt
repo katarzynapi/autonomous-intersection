@@ -1,0 +1,22 @@
+1. OPIS - prosta droga jednopasmowa, kilka samochodów (jeden za drugim)
+
+DOCELOWE ZACHOWANIE - samochody powinny dostosowywać do siebie prędkość, aby się nie pozderzać
+
+AKTUALNE ZACHOWANIE - film "prosta" + screen "prosta" z kodem
+- samochody wydłużają się i "gonią" poprzedzające
+
+2. OPIS - prosta droga dwupasmowa, jeden samochód na pasie MAIN, jedna komórka ma przypisaną przeszkodę typu Blockade
+
+DOCELOWE ZACHOWANIE - samochód powinien wyminąć przeszkodę Blockade
+
+AKTUALNE ZACHOWANIE - error: linia 223 -> nie działa ten next :(
+(line 223, in can_safely_change_to_other_path
+(prev_dist, prev_vehicle) = next(((len(other_path_bwd)-1-i, x.agent) for i, x in other_path_bwd.cells[:-1] if x.agent is not None), (None, None)) 
+AttributeError: 'list' object has no attribute 'cells')
+
+3. OPIS - prosta droga dwupasmowa, jeden samochód na pasie MAIN, jedna komórka ma przypisaną przeszkodę typu Lights
+
+DOCELOWE ZACHOWANIE - samochód powinien zatrzymać się na światłach
+
+AKTUALNE ZACHOWANIE - metoda compute_new_velocity() - linia 309
+niepoprawnie liczy się velocity -> w ogóle się nie zmienia przy dojeżdżaniu do świateł (ale acceleration się zmienia)

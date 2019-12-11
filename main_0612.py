@@ -107,7 +107,25 @@ model = dill.load( open( "model1.d", "rb" ) )
         print(cell.r_neighbour.getCoords())
     print("")
 '''
-#create paths
+
+#create one direction path
+'''current_cell = model.grid.inputs[0]
+straight_path = [current_cell]
+while current_cell.if_border != autointer.IfBorder.OUTPUT:
+    straight_path.append(current_cell.f_neighbour)
+    current_cell = current_cell.f_neighbour
+model.paths[(model.grid.inputs[0], current_cell)] = autointer.Path(autointer.PathType.MAIN, straight_path)'''
+
+# add lights
+model.lights.append(autointer.Lights())
+model.lights[0].location = model.grid.cells[20]
+model.grid.cells[20].obstacles.append(model.lights[-1])
+# add blockade
+#model.obstacles.append(autointer.Blockade())
+#model.obstacles[-1].location = model.grid.cells[20]
+#model.grid.cells[20].obstacles.append(model.obstacles[-1])
+
+# create paths in two directions (parallel)
 for inp in model.grid.inputs:
     #add path with going straight
     current_cell = inp
@@ -121,10 +139,10 @@ model.paths[(inp, current_cell)].type = autointer.PathType.ALTERNATIVE
 # simulate agent movement along the road
 destination_reached = False
 i = 0
-#model.lights.append(autointer.Lights())
-#model.lights[0].location = model.grid.cells[20]
 while destination_reached == False:
-    #print(model.lights[0].colour)
+    print("")
+    print(i)
+    print(model.lights[0].colour)
     if i%100==0:
         # add default agent to model
         model.generateAgent()
