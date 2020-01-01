@@ -1,11 +1,20 @@
 import cv2
-def drawNewCircle(i, j, image):
-    cv2.circle(image, (i, j), 5, (0, 0, 255), 15)
-    cv2.imshow('image', image)
-    cv2.waitKey(100)
+import random
 
-def drawNewLine(start_points, end_points, width, image):
-    for s, e in zip(start_points, end_points):
-        image = cv2.line(image, s, e, (0, 0, 255), width)
+def drawNewCircle(agents, image):
+    for a in agents:
+        print([i.getCoords() for i in a.location])
+        for c in a.location:
+            image = cv2.circle(image, (c.getCoords()), 5, a.color, 15)
     cv2.imshow('image', image)
-    cv2.waitKey(1000)
+    cv2.waitKey(500)
+
+#def drawNewLine(start_points, end_points, width, image, color):
+def drawNewLine(agents, width, image):
+    for a in agents:
+        print([i.getCoords() for i in a.location])
+        image = cv2.line(image, a.location[0].getCoords(), a.location[-1].getCoords(), a.color, width)
+    #for s, e, c in zip(start_points, end_points, color):
+        #image = cv2.line(image, s, e, c, width)
+    cv2.imshow('image', image)
+    cv2.waitKey(500)

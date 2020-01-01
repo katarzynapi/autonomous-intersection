@@ -108,25 +108,25 @@ model = dill.load( open( "model1.d", "rb" ) )
     print("")
 '''
 
+# add lights
+#model.lights.append(autointer.Lights())
+#model.lights[0].location = model.grid.cells[20]
+#model.grid.cells[20].obstacles.append(model.lights[-1])
+# add blockade
+model.obstacles.append(autointer.Blockade())
+model.obstacles[-1].location = model.grid.cells[20]
+model.grid.cells[20].obstacles.append(model.obstacles[-1])
+
 #create one direction path
-'''current_cell = model.grid.inputs[0]
+current_cell = model.grid.inputs[0]
 straight_path = [current_cell]
 while current_cell.if_border != autointer.IfBorder.OUTPUT:
     straight_path.append(current_cell.f_neighbour)
     current_cell = current_cell.f_neighbour
-model.paths[(model.grid.inputs[0], current_cell)] = autointer.Path(autointer.PathType.MAIN, straight_path)'''
-
-# add lights
-model.lights.append(autointer.Lights())
-model.lights[0].location = model.grid.cells[20]
-model.grid.cells[20].obstacles.append(model.lights[-1])
-# add blockade
-#model.obstacles.append(autointer.Blockade())
-#model.obstacles[-1].location = model.grid.cells[20]
-#model.grid.cells[20].obstacles.append(model.obstacles[-1])
+model.paths[(model.grid.inputs[0], current_cell)] = autointer.Path(autointer.PathType.MAIN, straight_path)
 
 # create paths in two directions (parallel)
-for inp in model.grid.inputs:
+'''for inp in model.grid.inputs:
     #add path with going straight
     current_cell = inp
     straight_path = [current_cell]
@@ -134,26 +134,32 @@ for inp in model.grid.inputs:
         straight_path.append(current_cell.f_neighbour)
         current_cell = current_cell.f_neighbour
     model.paths[(inp, current_cell)] = autointer.Path(autointer.PathType.MAIN, straight_path)
-model.paths[(inp, current_cell)].type = autointer.PathType.ALTERNATIVE
+model.paths[(inp, current_cell)].type = autointer.PathType.ALTERNATIVE'''
 
 # simulate agent movement along the road
 destination_reached = False
 i = 0
-while destination_reached == False:
+#while destination_reached == False:
+while True:
     print("")
     print(i)
-    print(model.lights[0].colour)
+    #print(model.lights[0].colour)
+    print("Lokalizacja przeszkody:")
+    print(model.grid.cells[20].getCoords())
     if i%100==0:
+        colors = [(0, 0, 255), (0, 255, 0), (255, 0, 0), (0, 255, 255), (255, 0, 255), (255, 255, 0)]
+        color = random.choice(colors)
         # add default agent to model
         model.generateAgent()
+        model.agents[-1].color = color
         model.agents[-1].ascribe_paths(list(model.paths.values()))
         model.agents[-1].place_on_grid(model.grid.inputs[0])
         #model.agents[-1].path.extend(model.paths[(model.grid.inputs[0], model.grid.outputs[0])][5:])
         model.agents[-1].destination = model.grid.outputs[0]
     model.image = clean_img.copy()
-    model.showAgentMovement(0, 8)
+    model.showAgentMovement(8)
     model.step()
-    destination_reached = model.agents[0].reached_destination()
+    #destination_reached = model.agents[0].reached_destination()
     i+=1
 
 cv2.destroyAllWindows()

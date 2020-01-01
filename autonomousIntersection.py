@@ -83,7 +83,7 @@ class Grid:
         return self.coords_range
 
 class Path:
-    def __init__(self, path_type, cell_list):
+    def __init__(self, path_type=None, cell_list=None):
         self.type = path_type
         self.cells = cell_list
         
@@ -141,8 +141,9 @@ class GeneralAgent:
         GeneralAgent._counter += 1
         self.id = GeneralAgent._counter
         self.location = []              # lista Cell; 1szy el. - head
-        self.velocity = self.vel_table[0,random.randint(2,7)]        # w polach drogi na jednostkę czasu
+        #self.velocity = self.vel_table[0,random.randint(2,7)]        # w polach drogi na jednostkę czasu
         self.max_velocity = self.vel_table[0,9]
+        self.velocity = 1
         self.acceleration = 0.0
         self.max_acceleration = 2       # zakładam, że auto może przyspieszać 4 m/s^2
         self.max_deceleration = -2
@@ -156,19 +157,35 @@ class GeneralAgent:
         self.how_many_cells_forward = 0
         self.new_velocity = 0.0
         self.new_acceleration = 0.0
+        self.color = None
 
     def place_on_grid(self, tail_position):
         self.location.insert(0,tail_position)
         tail_position.agent = self
+        print("tail_posiiton.agent")
+        print(tail_position.agent)
         cell_to_add = tail_position
         for i in range(self.how_many_cells()-1):
             cell_to_add = cell_to_add.f_neighbour
             cell_to_add.agent = self
             self.location.insert(0,cell_to_add)
+        path_to_remove = self.path.cells[:self.how_many_cells()+1]
+        for c in path_to_remove:
+            c.agent = None
+        self.path.cells = self.path.cells[self.how_many_cells():]
+        print("tail_posiiton.agent_end")
+        print(tail_position.agent)
 
     def ascribe_paths(self, paths_list):
-        self.all_paths = paths_list
-        self.path = next((p for p in paths_list if p.type == PathType.MAIN), None)
+        #self.all_paths = paths_list
+        #self.path = next((p for p in paths_list if p.type == PathType.MAIN), None)
+        for p in paths_list:
+            self.all_paths.append(Path())
+            self.all_paths[-1].type = p.type
+            self.all_paths[-1].cells = []
+            for c in p.cells:
+                self.all_paths[-1].cells.append(c)
+        self.path = next((p for p in self.all_paths if p.type == PathType.MAIN), None)
 
     @property
     def head(self):
@@ -220,7 +237,7 @@ class GeneralAgent:
     def can_safely_change_to_other_path(self, other_path_fwd, other_path_bwd):
         #gdyby się okazało, że to wszystko wali błędami, to przerobimy na zwykłą pętlę for
         #zmiana other_path_bwd[::-1] na other_path_bwd[:-1]
-        (prev_dist, prev_vehicle) = next(((len(other_path_bwd)-1-i, x.agent) for i, x in other_path_bwd[:-1] if x.agent is not None), (None, None)) 
+        (prev_dist, prev_vehicle) = next(((len(other_path_bwd)-1-i, x.agent) for i, x in other_path_bwd[::-1] if x.agent is not None), (None, None))
         (next_dist, next_vehicle) = next(((i+1, x.agent) for i, x in other_path_fwd if x.agent is not None), (None, None))
         if prev_vehicle is None:
             prev_safe = True
@@ -307,13 +324,25 @@ class GeneralAgent:
         self.how_many_cells_forward = int(round(self.velocity))
 
     def compute_new_velocity(self):
+        print("W compute_new_velocity weszło do:")
         if (self.acceleration >= 0):
+            #print("if")
+            #print("self.velocity:")
+            #print(self.velocity)
+            #print("self.self.acceleration:")
+            #print(self.acceleration)
+            #print("self.max_velocity:")
+            #print(self.max_velocity)
             self.new_velocity = min(self.velocity + self.acceleration, self.max_velocity)
         else:
+            #print("else")
             self.new_velocity = max(self.velocity + self.acceleration, 0)
+        #print("new_velocity")
+        #print(self.new_velocity)
 
     #gdzieś w tej funkcji radośnie przesądzam i trochę hardcoduję, że opóźnienie może być tylko -1 lub -2
     def compute_new_acceleration(self):
+        #print("W compute_new_acceleration weszło do:")
         agent_on_path = self.find_first_agent_on_path()
         lights = self.find_nearest_lights()
         blockade = self.find_nearest_blockade()
@@ -327,20 +356,36 @@ class GeneralAgent:
         if agent_on_path is not None:
             a_dist = self.calc_path_distance(agent_on_path) + agent_on_path.stopping_dist(-2)
         if blockade is not None:
+            print("Mam blokadę!!! :D a mój kolor to:")
+            print(self.color)
             b_dist = self.calc_path_distance(blockade)
         dist = min(a_dist, l_dist, b_dist)
+        # przyspieszanie do 50
         if dist > self.stopping_dist(-1)*2:
-            self.acceleration = 1 if self.velocity < 7 else 0
+            self.new_acceleration = 1 if self.velocity < 7 else 0
+            print("dist > self.stopping_dist(-1)*2")
         #elif dist > stopping_dist(-1)*1.5:
             #self.acceleration = self.acceleration = max(self.acceleration, 0)
+        #nie przyspiesza, gdy ma blisko przeszkodę (najdłuższa droga hamowania)
         elif dist > self.stopping_dist(-1):
-            self.acceleration = 0
-        elif dist > self.stopping_dist(-2)+2:
-            self.acceleration = -1
-        elif dist >= self.stopping_dist(-2)-1:
-            self.acceleration = -2
+            self.new_acceleration = 0
+            print("dist > self.stopping_dist(-1)")
+        #zwalnia wolniej, bo dalej
+        #elif dist > self.stopping_dist(-2)+10:
+        elif dist <= self.stopping_dist(-1):
+            self.new_acceleration = -1
+            print("dist > self.stopping_dist(-2)+2")
+        #zwalnia szybciej, bo bliżej
+        #elif dist >= self.stopping_dist(-2)+1:
+            #self.new_acceleration = -2
+            #print("dist >= self.stopping_dist(-2)-1")
+        #elif dist == 1 or dist == 2:
+            #self.new_acceleration = 0
         else:
-            self.acceleration = max(self.acceleration, 0)
+            print("else")
+            self.new_acceleration = max(self.acceleration, 0)
+        #print("self.new_acceleration:")
+        #print(self.new_acceleration)
 
     def update_position(self):
         # powinno działać. testy by nie zaszkodziły
@@ -366,18 +411,19 @@ class GeneralAgent:
     #aby wszyscy ruszali się jednocześnie, najpierw trzeba policzyć nowe parametry, a jak wszystkie będą policzone, to je przypisać. Dlatego dwie metody (wzorowałam się na SimultaneousActivation z mesa)
 
     def step(self):
-        pass
         self.scan_for_obstacles()
         self.update_route()
-        self.compute_new_location()
-        self.compute_new_velocity()
         self.compute_new_acceleration()
+        self.compute_new_velocity()
+        self.compute_new_location()
 
     def advance(self):
         self.update_position()
         self.velocity = self.new_velocity
         self.acceleration = self.new_acceleration
-        
+        #if (self.velocity == 1 and self.acceleration == -2) or (self.velocity == 0 and self.acceleration == -1):
+        #    self.acceleration = 0
+        #    self.velocity = 0
 #_________________________________________________________________________
 # model
 
@@ -392,10 +438,17 @@ class IntersectionModel:
     # show agent movement
         self.lights = []
         self.obstacles = []
-    def showAgentMovement(self, id, width):
-        start_points = [a.head.getCoords() for a in self.agents]
-        end_points = [a.tail.getCoords() for a in self.agents]
-        mapdraw.drawNewLine(start_points, end_points, width, self.image)
+    def showAgentMovement(self, width):
+        #start_points = [a.location[0].getCoords() for a in self.agents]
+        #print("start_points:")
+        #print(start_points)
+        #end_points = [a.location[-1].getCoords() for a in self.agents]
+        #print("end_points:")
+        #print(end_points)
+        #color = [a.color for a in self.agents]
+        #mapdraw.drawNewLine(start_points, end_points, width, self.image, color)
+        mapdraw.drawNewCircle(self.agents, self.image)
+        #mapdraw.drawNewLine(self.agents, width, self.image)
     #add new agent with default parameters (can be expanded with additional parameters)
     def generateAgent(self):
         self.agents.append(GeneralAgent())
@@ -411,6 +464,14 @@ class IntersectionModel:
                 l.change()
         for a in self.agents:
             a.step()
+        print("Velocity:")
+        print(self.agents[0].velocity)
+        print("New_velocity:")
+        print(self.agents[0].new_velocity)
+        print("Accel:")
+        print(self.agents[0].acceleration)
+        print("New_accel:")
+        print(self.agents[0].new_acceleration)
         for a in self.agents:
             a.advance()
         self.steps += 1
