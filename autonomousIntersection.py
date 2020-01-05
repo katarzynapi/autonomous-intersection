@@ -143,27 +143,26 @@ class GeneralAgent:
         self.location = []              # lista Cell; 1szy el. - head
         #self.velocity = self.vel_table[0,random.randint(2,7)]        # w polach drogi na jednostkę czasu
         self.max_velocity = self.vel_table[0,9]
-        self.velocity = 1
-        self.acceleration = 0.0
+        self.velocity = 0
+        self.acceleration = 0
         self.max_acceleration = 2       # zakładam, że auto może przyspieszać 4 m/s^2
         self.max_deceleration = -2
-        self.length = 5.0
-        self.visibility = 0.0           # z jakiej odległości widać agenta
-        self.field_of_view = 80.0        # na jaką odległość widzi agent
+        self.length = 5
+        self.visibility = 0           # z jakiej odległości widać agenta
+        self.field_of_view = 80        # na jaką odległość widzi agent
         self.destination = None
         self.all_paths = []
         self.path = None                  # pierwsza komórka w path to któryś z przednich sąsiadów head
         self.obstacles = []
         self.how_many_cells_forward = 0
-        self.new_velocity = 0.0
-        self.new_acceleration = 0.0
+        self.new_velocity = 0
+        self.new_acceleration = 0
         self.color = None
 
-    def place_on_grid(self, tail_position):
+    def place_on_grid(self, tail_position, which_path):
+        self.path = self.all_paths[which_path]
         self.location.insert(0,tail_position)
         tail_position.agent = self
-        print("tail_posiiton.agent")
-        print(tail_position.agent)
         cell_to_add = tail_position
         for i in range(self.how_many_cells()-1):
             cell_to_add = cell_to_add.f_neighbour
@@ -173,8 +172,6 @@ class GeneralAgent:
         for c in path_to_remove:
             c.agent = None
         self.path.cells = self.path.cells[self.how_many_cells():]
-        print("tail_posiiton.agent_end")
-        print(tail_position.agent)
 
     def ascribe_paths(self, paths_list):
         #self.all_paths = paths_list
@@ -212,7 +209,7 @@ class GeneralAgent:
 
     def stopping_dist(self, dec):
         # -abs(dec) jest po to, żeby opóźnienie można było podawać z minusem lub bez
-        return sum(list(range(int(self.velocity), 0, int(-abs(dec)))))
+        return sum(   list(  range( self.new_velocity, 0, -abs(dec) )  )   )
 
     def reached_destination(self):
         #jeśli przód agenta jest blisko celu, to cel uznajemy za osiągnięty
@@ -321,11 +318,17 @@ class GeneralAgent:
 
 
     def compute_new_location(self):
-        self.how_many_cells_forward = int(round(self.velocity))
+        self.how_many_cells_forward = int(round(self.new_velocity))
 
     def compute_new_velocity(self):
-        print("W compute_new_velocity weszło do:")
-        if (self.acceleration >= 0):
+        #print("W compute_new_velocity weszło do:")
+        #print("new_acceleration:")
+        #print(self.new_acceleration)
+        if self.dist <= 1 and self.new_acceleration == 0:
+            self.new_velocity = 0
+        else:
+            self.new_velocity = self.velocity + self.new_acceleration
+        #if (self.new_acceleration >= 0):
             #print("if")
             #print("self.velocity:")
             #print(self.velocity)
@@ -333,10 +336,10 @@ class GeneralAgent:
             #print(self.acceleration)
             #print("self.max_velocity:")
             #print(self.max_velocity)
-            self.new_velocity = min(self.velocity + self.acceleration, self.max_velocity)
-        else:
+            #self.new_velocity = min(self.velocity + self.new_acceleration, self.max_velocity)
+        #else:
             #print("else")
-            self.new_velocity = max(self.velocity + self.acceleration, 0)
+            #self.new_velocity = max(self.velocity + self.new_acceleration, 0)
         #print("new_velocity")
         #print(self.new_velocity)
 
@@ -359,31 +362,34 @@ class GeneralAgent:
             print("Mam blokadę!!! :D a mój kolor to:")
             print(self.color)
             b_dist = self.calc_path_distance(blockade)
-        dist = min(a_dist, l_dist, b_dist)
+        self.dist = min(a_dist, l_dist, b_dist)
+        print("dist:")
+        print(self.dist)
+        if self.dist <= 1:
+            self.new_acceleration = 0
+            print("dist <= 1")
+        #zwalnia wolniej, bo dalej
+        #elif dist > self.stopping_dist(-2)+10:
+        elif self.dist <= self.stopping_dist(-1):
+            self.new_acceleration = -1
+            print("dist <= self.stopping_dist(-1) and dist > 1")
         # przyspieszanie do 50
-        if dist > self.stopping_dist(-1)*2:
+        elif self.dist > self.stopping_dist(-1)*2:
             self.new_acceleration = 1 if self.velocity < 7 else 0
             print("dist > self.stopping_dist(-1)*2")
         #elif dist > stopping_dist(-1)*1.5:
             #self.acceleration = self.acceleration = max(self.acceleration, 0)
         #nie przyspiesza, gdy ma blisko przeszkodę (najdłuższa droga hamowania)
-        elif dist > self.stopping_dist(-1):
+        elif self.dist > self.stopping_dist(-1):
             self.new_acceleration = 0
             print("dist > self.stopping_dist(-1)")
-        #zwalnia wolniej, bo dalej
-        #elif dist > self.stopping_dist(-2)+10:
-        elif dist <= self.stopping_dist(-1):
-            self.new_acceleration = -1
-            print("dist > self.stopping_dist(-2)+2")
         #zwalnia szybciej, bo bliżej
         #elif dist >= self.stopping_dist(-2)+1:
             #self.new_acceleration = -2
             #print("dist >= self.stopping_dist(-2)-1")
-        #elif dist == 1 or dist == 2:
-            #self.new_acceleration = 0
         else:
-            print("else")
             self.new_acceleration = max(self.acceleration, 0)
+            print("else")
         #print("self.new_acceleration:")
         #print(self.new_acceleration)
 
@@ -392,20 +398,23 @@ class GeneralAgent:
         # auto wjeżdża na tyle komórek path, ile wyznaczono na podstawie prędkości
         vel_len_diff = self.how_many_cells_forward - self.length
         start = vel_len_diff if vel_len_diff >= 0 else 0
-        new_car_part = self.path.cells[int(start):int(self.how_many_cells_forward)]
+        new_car_part = self.path.cells[start:self.how_many_cells_forward]
         new_car_part.reverse()
-        # dodajemy agenta dla nowych komórek
-        for cell in new_car_part:
-            cell.agent = self
-        # auto pozostaje na swoich komórkach - tyle, o ile się przesuwa
-        old_car_part = self.location[:-self.how_many_cells_forward]
-        # zdejmujemy agenta z komórek, z których zjechał
-        for cell in self.location[-self.how_many_cells_forward:]:
-            cell.agent = None
-        # nowe położenie
-        self.location = new_car_part + old_car_part
-        # ucinamy z path to, na co wjechało auto
-        self.path.cells = self.path.cells[self.how_many_cells_forward:]
+        if not new_car_part and self.dist <= 1:
+            pass
+        else:
+            # dodajemy agenta dla nowych komórek
+            for cell in new_car_part:
+                cell.agent = self
+            # auto pozostaje na swoich komórkach - tyle, o ile się przesuwa
+            old_car_part = self.location[:-self.how_many_cells_forward]
+            # zdejmujemy agenta z komórek, z których zjechał
+            for cell in self.location[-self.how_many_cells_forward:]:
+                cell.agent = None
+            # nowe położenie
+            self.location = new_car_part + old_car_part
+            # ucinamy z path to, na co wjechało auto
+            self.path.cells = self.path.cells[self.how_many_cells_forward:]
 
 
     #aby wszyscy ruszali się jednocześnie, najpierw trzeba policzyć nowe parametry, a jak wszystkie będą policzone, to je przypisać. Dlatego dwie metody (wzorowałam się na SimultaneousActivation z mesa)
@@ -459,7 +468,7 @@ class IntersectionModel:
                 self.agents.remove(a)
 
     def step(self):
-        if self.time % 20 == 0:
+        if self.time % 10 == 0:
             for l in self.lights:
                 l.change()
         for a in self.agents:

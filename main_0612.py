@@ -36,6 +36,7 @@ counter = 0
 '''
 # add cells for road fragment (based on centers of drawn circles = cells)
 # green cells
+print("green")
 for i, row in enumerate(img):
     for j, col in enumerate(row):
         if np.array_equal(green, col) or np.array_equal(nw, col) or np.array_equal(sw, col):
@@ -56,11 +57,11 @@ for i, row in enumerate(img):
             cv2.imshow('image', clean_img)
             cv2.waitKey(1)
             model.grid.addCell(j, i, autointer.CellType.ROAD)
-print("green")
 
 cells_number = len(model.grid.cells)
 model.grid.cells[0].if_border = autointer.IfBorder.INPUT
 model.grid.cells[int(cells_number/2)-1].if_border = autointer.IfBorder.OUTPUT
+model.grid.cells[int(cells_number/2):] = reversed(model.grid.cells[int(cells_number/2):])
 model.grid.cells[int(cells_number/2)].if_border = autointer.IfBorder.INPUT
 model.grid.cells[-1].if_border = autointer.IfBorder.OUTPUT
 
@@ -79,15 +80,17 @@ for o_cell, g_cell in zip (model.grid.cells[:92], model.grid.cells[92:]):
     o_cell.l_neighbour = g_cell
     g_cell.r_neighbour = o_cell
 
-# add to list of inputs and iutputs
+# add to list of inputs and inputs
 for cell in model.grid.cells:
     if cell.if_border == autointer.IfBorder.INPUT:
         model.grid.inputs.append(cell)
     if cell.if_border == autointer.IfBorder.OUTPUT:
         model.grid.outputs.append(cell)
-'''
-#dill.dump( model, open( "model1.d", "wb" ) )
-model = dill.load( open( "model1.d", "rb" ) )
+print("Lokalizacje inputów:")
+print(model.grid.inputs[0].getCoords())
+print(model.grid.inputs[1].getCoords())'''
+#dill.dump( model, open( "model.d", "wb" ) )
+model = dill.load( open( "model.d", "rb" ) )
 #_______________________________________________________________________
 '''for i, cell in enumerate(model.grid.cells):
     print(i)
@@ -109,21 +112,33 @@ model = dill.load( open( "model1.d", "rb" ) )
 '''
 
 # add lights
-#model.lights.append(autointer.Lights())
-#model.lights[0].location = model.grid.cells[20]
-#model.grid.cells[20].obstacles.append(model.lights[-1])
+model.lights.append(autointer.Lights())
+model.lights[0].location = model.grid.cells[45]
+model.grid.cells[45].obstacles.append(model.lights[-1])
+model.lights.append(autointer.Lights())
+model.lights[1].location = model.grid.cells[137]
+model.grid.cells[137].obstacles.append(model.lights[-1])
 # add blockade
-model.obstacles.append(autointer.Blockade())
-model.obstacles[-1].location = model.grid.cells[20]
-model.grid.cells[20].obstacles.append(model.obstacles[-1])
+#model.obstacles.append(autointer.Blockade())
+#model.obstacles[-1].location = model.grid.cells[20]
+#model.grid.cells[20].obstacles.append(model.obstacles[-1])
 
-#create one direction path
-current_cell = model.grid.inputs[0]
-straight_path = [current_cell]
-while current_cell.if_border != autointer.IfBorder.OUTPUT:
-    straight_path.append(current_cell.f_neighbour)
-    current_cell = current_cell.f_neighbour
-model.paths[(model.grid.inputs[0], current_cell)] = autointer.Path(autointer.PathType.MAIN, straight_path)
+#create one direction path (one road)
+#current_cell = model.grid.inputs[0]
+#straight_path = [current_cell]
+#while current_cell.if_border != autointer.IfBorder.OUTPUT:
+    #straight_path.append(current_cell.f_neighbour)
+    #current_cell = current_cell.f_neighbour
+#model.paths[(model.grid.inputs[0], current_cell)] = autointer.Path(autointer.PathType.MAIN, straight_path)
+
+#create one direction path (all roads)
+for inp in model.grid.inputs:
+    current_cell = inp
+    straight_path = [current_cell]
+    while current_cell.if_border != autointer.IfBorder.OUTPUT:
+        straight_path.append(current_cell.f_neighbour)
+        current_cell = current_cell.f_neighbour
+    model.paths[(inp, current_cell)] = autointer.Path(autointer.PathType.MAIN, straight_path)
 
 # create paths in two directions (parallel)
 '''for inp in model.grid.inputs:
@@ -139,23 +154,29 @@ model.paths[(inp, current_cell)].type = autointer.PathType.ALTERNATIVE'''
 # simulate agent movement along the road
 destination_reached = False
 i = 0
+print("Lokalizacje inputów:")
+print(model.grid.inputs[0].getCoords())
+print(model.grid.inputs[1].getCoords())
 #while destination_reached == False:
 while True:
     print("")
     print(i)
-    #print(model.lights[0].colour)
-    print("Lokalizacja przeszkody:")
-    print(model.grid.cells[20].getCoords())
-    if i%100==0:
+    print("Światło:")
+    print(model.lights[0].colour)
+    #print("Lokalizacja przeszkody:")
+    #print(model.grid.cells[20].getCoords())
+    if i%5==0:
         colors = [(0, 0, 255), (0, 255, 0), (255, 0, 0), (0, 255, 255), (255, 0, 255), (255, 255, 0)]
         color = random.choice(colors)
+        paths = [0, 1]
+        path = random.choice(paths)
         # add default agent to model
         model.generateAgent()
         model.agents[-1].color = color
         model.agents[-1].ascribe_paths(list(model.paths.values()))
-        model.agents[-1].place_on_grid(model.grid.inputs[0])
+        model.agents[-1].destination = model.grid.outputs[path]
+        model.agents[-1].place_on_grid(model.grid.inputs[path], path)
         #model.agents[-1].path.extend(model.paths[(model.grid.inputs[0], model.grid.outputs[0])][5:])
-        model.agents[-1].destination = model.grid.outputs[0]
     model.image = clean_img.copy()
     model.showAgentMovement(8)
     model.step()
