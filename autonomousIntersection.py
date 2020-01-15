@@ -1,10 +1,12 @@
 import math
-from enum import Enum
+#from enum import Enum
+import enums
 import mapDrawing as mapdraw
 import numpy as np
 import random
+import cv2
 
-class CellType(Enum):
+'''class CellType(Enum):
     NULL = 0
     PAVEMENT = 1
     GRASS = 2
@@ -25,15 +27,15 @@ class IfBorder(Enum):
 class PathType(Enum):
     MAIN = 1
     ALTERNATIVE = 2
-    OPPOSITE = 3
+    OPPOSITE = 3'''
 
 #_________________________________________________________________________
 # map
 
 class Cell:
-    def __init__(self, x_coords=0.0, y_coords=0.0, surface_type=CellType.NULL, if_border = IfBorder.NOT):
+    def __init__(self, x_coords=0.0, y_coords=0.0, surface_type=enums.CellType.NULL, if_border = enums.IfBorder.NOT):
         self.coords = Coordinates(x_coords, y_coords)
-        self.if_border = IfBorder.NOT
+        self.if_border = enums.IfBorder.NOT
         self.surface_type = surface_type
         self.f_neighbour = None           # forward
         self.b_neighbour = None           # backward
@@ -109,14 +111,15 @@ class Obstacle:
         self.visibility = 0.0
         self.agent_types = []
         self.speed_limit = 0.0
+        self.connected_paths = []
         
 class Lights(Obstacle):
     def __init__(self):
         super(Obstacle).__init__()
-        self.colour = Colour.GREEN
+        self.colour = enums.Colour.GREEN
 
     def change(self):
-        self.colour = Colour.GREEN if self.colour == Colour.RED else Colour.RED
+        self.colour = enums.Colour.GREEN if self.colour == enums.Colour.RED else enums.Colour.RED
         
 class Blockade(Obstacle):
     #przeszkoda, którą trzeba wyminąć
@@ -151,8 +154,9 @@ class GeneralAgent:
         self.visibility = 0           # z jakiej odległości widać agenta
         self.field_of_view = 80        # na jaką odległość widzi agent
         self.destination = None
-        self.all_paths = []
+        self.all_paths = {}
         self.path = None                  # pierwsza komórka w path to któryś z przednich sąsiadów head
+        self.in_out = None
         self.obstacles = []
         self.how_many_cells_forward = 0
         self.new_velocity = 0
@@ -160,6 +164,7 @@ class GeneralAgent:
         self.color = None
 
     def place_on_grid(self, tail_position, which_path):
+        self.in_out = which_path
         self.path = self.all_paths[which_path]
         self.location.insert(0,tail_position)
         tail_position.agent = self
@@ -173,16 +178,16 @@ class GeneralAgent:
             c.agent = None
         self.path.cells = self.path.cells[self.how_many_cells():]
 
-    def ascribe_paths(self, paths_list):
+    def ascribe_paths(self, paths_dict):
         #self.all_paths = paths_list
         #self.path = next((p for p in paths_list if p.type == PathType.MAIN), None)
-        for p in paths_list:
-            self.all_paths.append(Path())
-            self.all_paths[-1].type = p.type
-            self.all_paths[-1].cells = []
+        for in_out, p in paths_dict.items():
+            self.all_paths[in_out] = Path()
+            self.all_paths[in_out].type = p.type
+            self.all_paths[in_out].cells = []
             for c in p.cells:
-                self.all_paths[-1].cells.append(c)
-        self.path = next((p for p in self.all_paths if p.type == PathType.MAIN), None)
+                self.all_paths[in_out].cells.append(c)
+        #self.path = next((p for p in self.all_paths if p.type == enums.PathType.MAIN), None)
 
     @property
     def head(self):
@@ -209,7 +214,7 @@ class GeneralAgent:
 
     def stopping_dist(self, dec):
         # -abs(dec) jest po to, żeby opóźnienie można było podawać z minusem lub bez
-        return sum(   list(  range( self.new_velocity, 0, -abs(dec) )  )   )
+        return sum(   list(  range( self.velocity, 0, -abs(dec) )  )   )
 
     def reached_destination(self):
         #jeśli przód agenta jest blisko celu, to cel uznajemy za osiągnięty
@@ -221,21 +226,20 @@ class GeneralAgent:
 
     def alternative_route_exists(self):
         for p in self.all_paths:
-            if (p.type == PathType.ALTERNATIVE and (self.head.r_neighbour in p.cells or self.head.r_neighbour in p.cells)):
+            if (p.type == enums.PathType.ALTERNATIVE and (self.head.r_neighbour in p.cells or self.head.r_neighbour in p.cells)):
                 return True
         return False
 
     def opposite_route_exists(self):
         for p in self.all_paths:
-            if p.type == PathType.OPPOSITE and (self.head.r_neighbour in p.cells or self.head.r_neighbour in p.cells):
+            if p.type == enums.PathType.OPPOSITE and (self.head.r_neighbour in p.cells or self.head.r_neighbour in p.cells):
                 return True
         return False
 
     def can_safely_change_to_other_path(self, other_path_fwd, other_path_bwd):
         #gdyby się okazało, że to wszystko wali błędami, to przerobimy na zwykłą pętlę for
-        #zmiana other_path_bwd[::-1] na other_path_bwd[:-1]
-        (prev_dist, prev_vehicle) = next(((len(other_path_bwd)-1-i, x.agent) for i, x in other_path_bwd[::-1] if x.agent is not None), (None, None))
-        (next_dist, next_vehicle) = next(((i+1, x.agent) for i, x in other_path_fwd if x.agent is not None), (None, None))
+        (prev_dist, prev_vehicle) = next(((len(other_path_bwd)-1-i, x.agent) for i, x in enumerate(other_path_bwd[::-1]) if x.agent is not None), (None, None))
+        (next_dist, next_vehicle) = next(((i+1, x.agent) for i, x in enumerate(other_path_fwd) if x.agent is not None), (None, None))
         if prev_vehicle is None:
             prev_safe = True
         else:
@@ -243,7 +247,7 @@ class GeneralAgent:
         if next_vehicle is None:
             next_safe = True
         else:
-            next_safe = (self.stopping_dist(-2) + next_distance > next_vehicle.stopping_dist(-2))
+            next_safe = (self.stopping_dist(-2) + next_dist > next_vehicle.stopping_dist(-2))
         return (next_safe and prev_safe)
 
     def visible_path(self):
@@ -254,7 +258,9 @@ class GeneralAgent:
     def scan_for_obstacles(self):
         current_obstacles = []
         for c in self.visible_path():
-            current_obstacles += c.obstacles
+            for o in c.obstacles:
+                if self.in_out in o.connected_paths:
+                    current_obstacles.append(o)
         self.obstacles = current_obstacles
 
     def calc_path_distance(self, obstacle):
@@ -273,46 +279,53 @@ class GeneralAgent:
         return next((obs for obs in self.obstacles if isinstance(obs, Blockade)), None)
 
     def update_route(self):
-        if self.path.type == PathType.OPPOSITE:
+        if self.path.type == enums.PathType.OPPOSITE:
             neighbour_main = self.head.neighbour_r
-            main_path = next((p for p in self.all_paths if p.type == PathType.MAIN), None)
+            main_path = next((p for p in self.all_paths if p.type == enums.PathType.MAIN), None)
             start = main_path.index(neighbour_main)
             main_fwd = main_path[start+1:]
             main_bwd = main_path[:start+1]
             if can_safely_change_to_other_path(main_fwd, main_bwd):
-                self.path.type = PathType.MAIN
+                self.path.type = enums.PathType.MAIN
                 self.path.cells = main_bwd
         else:
-            if self.path.type == PathType.ALTERNATIVE and self.path.cells[-1].if_border == IfBorder.NOT and len(self.path.cells) < self.stopping_dist(-1) + 10:
-                neighbour_main = self.head.neighbour_r
-                main_path = next((p for p in self.all_paths if p.type == PathType.MAIN), None)
-                start = main_path.index(neighbour_main)
-                main_fwd = main_path[start+1:]
-                main_bwd = main_path[:start+1]
-                if can_safely_change_to_other_path(main_fwd, main_bwd):
-                    self.path.type = PathType.MAIN
-                    self.path.cells = main_bwd
+            #if self.path.type == enums.PathType.ALTERNATIVE and self.path.cells[-1].if_border == enums.IfBorder.NOT and len(self.path.cells)<self.stopping_dist(-1)+10:
+            if self.path.type == enums.PathType.ALTERNATIVE and self.tail.r_neighbour:
+                if not self.tail.r_neighbour.obstacles:
+                    neighbour_main = self.head.r_neighbour
+                    for k, p in self.all_paths.items():
+                        print(k, p.type)
+                    main_path = next((p for k, p in self.all_paths.items() if p.type == enums.PathType.MAIN), None)
+                    print("main_path: ", main_path)
+                    start = main_path.cells.index(neighbour_main)
+                    main_fwd = main_path.cells[start+1:]
+                    main_bwd = main_path.cells[:start+1]
+                    if self.can_safely_change_to_other_path(main_fwd, main_bwd):
+                        self.path = main_path
+                        self.path.type = enums.PathType.MAIN
+                        self.path.cells = main_fwd
             else:
                 blockade = self.find_nearest_blockade()
-                if blockade is not None:
-                    if self.path.type == PathType.ALTERNATIVE:
-                        neighbour_main = self.head.neighbour_r if self.head.neighbour_r is not None else self.head.neighbour_l
+                if blockade is not None and self.calc_path_distance(blockade) < 3:
+                    if self.path.type == enums.PathType.ALTERNATIVE:
+                        neighbour_main = self.head.r_neighbour if self.head.r_neighbour is not None else self.head.l_neighbour
                         main_path = next((p for p in self.all_paths if p.type == PathType.MAIN), None)
                         start = main_path.index(neighbour_main)
                         main_fwd = main_path[start+1:]
                         main_bwd = main_path[:start+1]
                         if can_safely_change_to_other_path(main_fwd, main_bwd):
-                            self.path.type = PathType.MAIN
+                            self.path.type = enums.PathType.MAIN
                             self.path.cells = main_bwd
                     else:
-                        avail_alt = [p for p in self.all_paths if p.type == PathType.ALTERNATIVE and (self.head.r_neighbour in p.cells or self.head.l_neighbour in p.cells)]
+                        avail_alt = [p for k, p in self.all_paths.items() if p.type == enums.PathType.ALTERNATIVE and (self.head.r_neighbour in p.cells or self.head.l_neighbour in p.cells)]
                         for p in avail_alt: # zmiana avail_path na avail_alt
                             neighbour_alt = self.head.r_neighbour if self.head.r_neighbour in p.cells else self.head.l_neighbour #zmiana p na p.cells
                             start = p.cells.index(neighbour_alt) #zmiana p na p.cells
                             alt_fwd = p.cells[start+1:] #zmiana p na p.cells
                             alt_bwd = p.cells[:start+1] #zmiana p na p.cells
                             if self.can_safely_change_to_other_path(alt_fwd, alt_bwd):
-                                self.path.type = PathType.ALTERNATIVE
+                                self.path = p
+                                self.path.type = enums.PathType.ALTERNATIVE
                                 self.path.cells = alt_fwd
         self.scan_for_obstacles()
 
@@ -324,7 +337,7 @@ class GeneralAgent:
         #print("W compute_new_velocity weszło do:")
         #print("new_acceleration:")
         #print(self.new_acceleration)
-        if self.dist <= 1 and self.new_acceleration == 0:
+        if self.dist <= 1 and self.new_acceleration == 0 and (self.velocity == 1 or self.velocity == 0):
             self.new_velocity = 0
         else:
             self.new_velocity = self.velocity + self.new_acceleration
@@ -354,39 +367,36 @@ class GeneralAgent:
         a_dist = self.far_away
         b_dist = self.far_away
         
-        if lights is not None and lights.colour == Colour.RED:
+        if lights is not None and lights.colour == enums.Colour.RED:
             l_dist = self.calc_path_distance(lights)
         if agent_on_path is not None:
-            a_dist = self.calc_path_distance(agent_on_path) + agent_on_path.stopping_dist(-2)
+            #a_dist = self.calc_path_distance(agent_on_path) + agent_on_path.stopping_dist(-1)
+            a_dist = self.calc_path_distance(agent_on_path)
         if blockade is not None:
-            print("Mam blokadę!!! :D a mój kolor to:")
-            print(self.color)
             b_dist = self.calc_path_distance(blockade)
         self.dist = min(a_dist, l_dist, b_dist)
         print("dist:")
         print(self.dist)
-        if self.dist <= 1:
+        # zatrzymanie tuż przed przeszkodą  
+        if self.dist <= 1 and (self.velocity == 1 or self.velocity == 0):
             self.new_acceleration = 0
-            print("dist <= 1")
-        #zwalnia wolniej, bo dalej
-        #elif dist > self.stopping_dist(-2)+10:
-        elif self.dist <= self.stopping_dist(-1):
+            print("self.dist <= 1 and (self.velocity == 1 or self.velocity == 0)")
+        # nie zdąży wyhamować
+        elif self.dist > 1 and self.dist < self.stopping_dist(-1)-self.velocity:
+            self.new_acceleration = 1 if self.velocity < 7 else 0
+            print("self.dist > 1 and self.dist < self.stopping_dist(-1)-self.velocity")
+        # zdążymy wyhamować przed przeszkodą i zwalnianiamy
+        elif self.dist >= self.stopping_dist(-1)-self.velocity and self.dist <= self.stopping_dist(-1):
             self.new_acceleration = -1
-            print("dist <= self.stopping_dist(-1) and dist > 1")
-        # przyspieszanie do 50
-        elif self.dist > self.stopping_dist(-1)*2:
+            print("self.dist >= self.stopping_dist(-1)-self.velocity and self.dist <= self.stopping_dist(-1)")
+        # utrzymywanie stałej prędkości jak zaczynamy "widzieć przeszkodę"
+        elif self.dist > self.stopping_dist(-1) and self.dist <= self.stopping_dist(-1)*2+1:
+            self.new_acceleration = 0
+            print("self.dist > self.stopping_dist(-1) and self.dist <= self.stopping_dist(-1)*2")
+        # przyspieszanie do 50, gdy przeszkoda jest daleko
+        elif self.dist > self.stopping_dist(-1)*2+1:
             self.new_acceleration = 1 if self.velocity < 7 else 0
             print("dist > self.stopping_dist(-1)*2")
-        #elif dist > stopping_dist(-1)*1.5:
-            #self.acceleration = self.acceleration = max(self.acceleration, 0)
-        #nie przyspiesza, gdy ma blisko przeszkodę (najdłuższa droga hamowania)
-        elif self.dist > self.stopping_dist(-1):
-            self.new_acceleration = 0
-            print("dist > self.stopping_dist(-1)")
-        #zwalnia szybciej, bo bliżej
-        #elif dist >= self.stopping_dist(-2)+1:
-            #self.new_acceleration = -2
-            #print("dist >= self.stopping_dist(-2)-1")
         else:
             self.new_acceleration = max(self.acceleration, 0)
             print("else")
@@ -456,7 +466,7 @@ class IntersectionModel:
         #print(end_points)
         #color = [a.color for a in self.agents]
         #mapdraw.drawNewLine(start_points, end_points, width, self.image, color)
-        mapdraw.drawNewCircle(self.agents, self.image)
+        mapdraw.drawNewCircle(self.agents, self.image, self.lights, self.obstacles)
         #mapdraw.drawNewLine(self.agents, width, self.image)
     #add new agent with default parameters (can be expanded with additional parameters)
     def generateAgent(self):
@@ -468,19 +478,30 @@ class IntersectionModel:
                 self.agents.remove(a)
 
     def step(self):
-        if self.time % 10 == 0:
-            for l in self.lights:
+        if self.steps % 46 == 9 or self.steps % 46 == 45:
+            for l in self.lights[:2]:
+                l.change()
+        elif self.steps % 46 == 13 or self.steps % 46 == 18:
+            for l in self.lights[2:4]:
+                l.change()
+        elif self.steps % 46 == 22 or self.steps % 46 == 32:
+            for l in self.lights[4:6]:
+                l.change()
+        elif self.steps % 46 == 36 or self.steps % 46 == 41:
+            for l in self.lights[6:]:
                 l.change()
         for a in self.agents:
             a.step()
-        print("Velocity:")
-        print(self.agents[0].velocity)
-        print("New_velocity:")
-        print(self.agents[0].new_velocity)
-        print("Accel:")
-        print(self.agents[0].acceleration)
-        print("New_accel:")
-        print(self.agents[0].new_acceleration)
+            if a.location:
+                print("Velocity:")
+                print(a.velocity)
+                print("New_velocity:")
+                print(a.new_velocity)
+                print("Accel:")
+                print(a.acceleration)
+                print("New_accel:")
+                print(a.new_acceleration)
+                print("")
         for a in self.agents:
             a.advance()
         self.steps += 1
