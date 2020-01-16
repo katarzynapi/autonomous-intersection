@@ -7,25 +7,25 @@ The aim of the project is simulating natural-looking traffic flow on various kin
 
   * [Road representation](https://github.com/katarzynapi/autonomous-intersection/blob/master/README.md#road-representation)
 
-Cars movement
+  * [Cars movement](https://github.com/katarzynapi/autonomous-intersection/blob/master/README.md#cars-movement)
 
-Updating model
+  * [Updating model](https://github.com/katarzynapi/autonomous-intersection/blob/master/README.md#updating-model)
 
-Randomness in the model
+  * [Randomness in the model](https://github.com/katarzynapi/autonomous-intersection/blob/master/README.md#randomness-in-the model)
 
 [Implementation details](https://github.com/katarzynapi/autonomous-intersection/blob/master/README.md#implementation-details)
 
 [Simulation examples](https://github.com/katarzynapi/autonomous-intersection/blob/master/README.md#simulation-examples)
-Intersection with lights
-Avoiding a blockade
+  * [Intersection with lights](https://github.com/katarzynapi/autonomous-intersection/blob/master/README.md#intersection-with-lights)
+  * [Avoiding a blockade](https://github.com/katarzynapi/autonomous-intersection/blob/master/README.md#avoiding-a-blockade)
 [User guide](https://github.com/katarzynapi/autonomous-intersection/blob/master/README.md#user-guide)
-Downloading project
-Running examples
-Map preparation
-Cars generation and paths ascribing
-Adding traffic lights
-Adding blockade
-Simulation steps
+  * [Downloading project](https://github.com/katarzynapi/autonomous-intersection/blob/master/README.md#downloading-project)
+  * [Running examples](https://github.com/katarzynapi/autonomous-intersection/blob/master/README.md#running-examples)
+  * [Map preparation](https://github.com/katarzynapi/autonomous-intersection/blob/master/README.md#map-preparation)
+  * [Cars generation and paths ascribing](https://github.com/katarzynapi/autonomous-intersection/blob/master/README.md#cars-generation-and-paths-ascribing)
+  * [Adding traffic lights](https://github.com/katarzynapi/autonomous-intersection/blob/master/README.md#adding-traffic-lights)
+  * [Adding blockade](https://github.com/katarzynapi/autonomous-intersection/blob/master/README.md#adding-blockade)
+  * [Simulation steps](https://github.com/katarzynapi/autonomous-intersection/blob/master/README.md#simulation-steps)
 
 ## Proposed Model
 
@@ -51,7 +51,7 @@ Description of actions:
 
 ### Updating model
 
-Simulation is performed by calling model’s method step() in the loop. This method consists of three parts. First, traffic lights are updated according to defined rules. Next, for all agents their __step()__ method is called (see the previous section **Car movement**). Finally for all agents method __advance()__ is called. It ascribes values computed in method __step()__ to the appropriate variables.
+Simulation is performed by calling model’s method step() in the loop. This method consists of three parts. First, traffic lights are updated according to defined rules. Next, for all agents their _step()_ method is called (see the previous section **Car movement**). Finally for all agents method _advance()_ is called. It ascribes values computed in method _step()_ to the appropriate variables.
 This way of updating the model is based on the idea used in [SimultanousActivation](https://mesa.readthedocs.io/en/master/apis/time.html#mesa.time.SimultaneousActivation) scheduler from Mesa library (however, we don’t use Mesa). It requires that each agent has two methods: step and advance. step() activates the agent and stages any necessary changes, but does not apply them yet. advance() then applies the changes.
 
 ### Randomness in the model
@@ -63,10 +63,10 @@ In the model simulation the following parameters may be random:
 
 ## Implementation details
 The project was implemented in Python 3.0. The following packages were used:
-  * __cv2__ - visualization
-  * __numpy__ - support for arrays management
-  * __dill__ - object serialization and deserialization
-  * __random__ - generating random numbers and choosing random list elements
+  * _cv2_ - visualization
+  * _numpy_ - support for arrays management
+  * _dill_ - object serialization and deserialization
+  * _random_ - generating random numbers and choosing random list elements
 
 All above-mentioned packages can be installed using command:
 ```sh
@@ -107,7 +107,7 @@ The second simulation was performed do show blockades avoiding. … Zobaczymy, c
 All project files are located on github [AutonomousIntersection](https://github.com/katarzynapi/autonomous-intersection). Clone the repository or download files directly from github page. 
 
 ### Running examples
-You can open the project in an IDE or run it directly in a console. To run the simulation execute proper __main_*.py__ file. If you use a console, go to catalog with main file and execute
+You can open the project in an IDE or run it directly in a console. To run the simulation execute proper _main___*.py_ file. If you use a console, go to catalog with main file and execute
 ```sh
 python main_*.py
 ```
