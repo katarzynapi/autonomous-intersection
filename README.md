@@ -3,23 +3,29 @@
 The aim of the project is simulating natural-looking traffic flow on various kinds of intersections. To achieve this goal a multiagent discrete non-deterministic model was created. It is based on the extension of the Nagel-Schreckenberg model proposed in [this](https://link.springer.com/chapter/10.1007/978-3-319-32152-3_48?fbclid=IwAR09CeDY-FHudgaqjKouczsxdzxOOMsXno-OseYgVT_sb_aD0lgBrsfvBsY) article.
 
 ## Table of contents
-[Proposed model](https://github.com/katarzynapi/autonomous-intersection/blob/master/README.md#proposed-model)
-Road representation
-Cars movement
-Updating model
-Randomness in the model
+[Proposed model](https://github.com/katarzynapi/autonomous-intersection/blob/master/README.md#proposed-model):
+
+  * [Road representation](https://github.com/katarzynapi/autonomous-intersection/blob/master/README.md#road-representation)
+
+  * [Cars movement](https://github.com/katarzynapi/autonomous-intersection/blob/master/README.md#cars-movement)
+
+  * [Updating model](https://github.com/katarzynapi/autonomous-intersection/blob/master/README.md#updating-model)
+
+  * [Randomness in the model](https://github.com/katarzynapi/autonomous-intersection/blob/master/README.md#randomness-in-the-model)
+
 [Implementation details](https://github.com/katarzynapi/autonomous-intersection/blob/master/README.md#implementation-details)
-[Simulation examples](https://github.com/katarzynapi/autonomous-intersection/blob/master/README.md#simulation-examples)
-Intersection with lights
-Avoiding a blockade
+
+[Simulation examples](https://github.com/katarzynapi/autonomous-intersection/blob/master/README.md#simulation-examples):
+  * [Intersection with lights](https://github.com/katarzynapi/autonomous-intersection/blob/master/README.md#intersection-with-lights)
+  * [Avoiding a blockade](https://github.com/katarzynapi/autonomous-intersection/blob/master/README.md#avoiding-a-blockade)
 [User guide](https://github.com/katarzynapi/autonomous-intersection/blob/master/README.md#user-guide)
-Downloading project
-Running examples
-Map preparation
-Cars generation and paths ascribing
-Adding traffic lights
-Adding blockade
-Simulation steps
+  * [Downloading project](https://github.com/katarzynapi/autonomous-intersection/blob/master/README.md#downloading-project)
+  * [Running examples](https://github.com/katarzynapi/autonomous-intersection/blob/master/README.md#running-examples)
+  * [Map preparation](https://github.com/katarzynapi/autonomous-intersection/blob/master/README.md#map-preparation)
+  * [Cars generation and paths ascribing](https://github.com/katarzynapi/autonomous-intersection/blob/master/README.md#cars-generation-and-paths-ascribing)
+  * [Adding traffic lights](https://github.com/katarzynapi/autonomous-intersection/blob/master/README.md#adding-traffic-lights)
+  * [Adding blockade](https://github.com/katarzynapi/autonomous-intersection/blob/master/README.md#adding-blockade)
+  * [Simulation steps](https://github.com/katarzynapi/autonomous-intersection/blob/master/README.md#simulation-steps)
 
 ## Proposed Model
 
@@ -45,7 +51,7 @@ Description of actions:
 
 ### Updating model
 
-Simulation is performed by calling model’s method step() in the loop. This method consists of three parts. First, traffic lights are updated according to defined rules. Next, for all agents their __step()__ method is called (see the previous section **Car movement**). Finally for all agents method __advance()__ is called. It ascribes values computed in method __step()__ to the appropriate variables.
+Simulation is performed by calling model’s method step() in a loop. This method consists of updating lights and  calling _step()_ (see [Cars movement](https://github.com/katarzynapi/autonomous-intersection/blob/master/README.md#cars-movement)) and _advance()_ methods for all agents. More details are described [here](https://github.com/katarzynapi/autonomous-intersection/blob/master/README.md#simulation-steps).
 This way of updating the model is based on the idea used in [SimultanousActivation](https://mesa.readthedocs.io/en/master/apis/time.html#mesa.time.SimultaneousActivation) scheduler from Mesa library (however, we don’t use Mesa). It requires that each agent has two methods: step and advance. step() activates the agent and stages any necessary changes, but does not apply them yet. advance() then applies the changes.
 
 ### Randomness in the model
@@ -57,10 +63,10 @@ In the model simulation the following parameters may be random:
 
 ## Implementation details
 The project was implemented in Python 3.0. The following packages were used:
-  * __cv2__ - visualization
-  * __numpy__ - support for arrays management
-  * __dill__ - object serialization and deserialization
-  * __random__ - generating random numbers and choosing random list elements
+  * _cv2_ - visualization
+  * _numpy_ - support for arrays management
+  * _dill_ - object serialization and deserialization
+  * _random_ - generating random numbers and choosing random list elements
 
 All above-mentioned packages can be installed using command:
 ```sh
@@ -73,7 +79,7 @@ pip install <name_of_package>
 The simulation presents car movement on the crossing of two single-lane roads with lights. It is presented on the exemplary map fragment taken from OpenStreetMap.
 [![N|Solid](https://raw.githubusercontent.com/katarzynapi/autonomous-intersection/master/pictures_report/map.png)](https://raw.githubusercontent.com/katarzynapi/autonomous-intersection/master/pictures_report/map.png)
 
-Before performing simulation, the structure of roads was loaded to the model data structure as described in **Map preparation** section (below). Also lights were added to proper cells on the crossing entering points. An entering-point cell can have more than one light assigned. Every light is ascribed to a path, to which it applies. 
+Before performing simulation, the structure of roads was loaded to the model data structure as described in [Map preparation](https://github.com/katarzynapi/autonomous-intersection/blob/master/README.md#map-preparation) section. Also lights were added to proper cells on the crossing entering points. An entering-point cell can have more than one light assigned. Every light is ascribed to a path, to which it applies. 
 [![N|Solid](https://raw.githubusercontent.com/katarzynapi/autonomous-intersection/master/pictures_report/lights_location.png)](https://raw.githubusercontent.com/katarzynapi/autonomous-intersection/master/pictures_report/lights_location.png)
 
 During the simulation, cars are generated randomly at the beginnings of roads. Each car has predefined:
@@ -101,7 +107,7 @@ The second simulation was performed do show blockades avoiding. … Zobaczymy, c
 All project files are located on github [AutonomousIntersection](https://github.com/katarzynapi/autonomous-intersection). Clone the repository or download files directly from github page. 
 
 ### Running examples
-You can open the project in an IDE or run it directly in a console. To run the simulation execute proper __main_*.py__ file. If you use a console, go to catalog with main file and execute
+You can open the project in an IDE or run it directly in a console. To run the simulation execute proper _main___*.py_ file. If you use a console, go to catalog with main file and execute
 ```sh
 python main_*.py
 ```
@@ -111,6 +117,7 @@ List of exemplary main files:
 
 #### Map preparation
 The road fragments were discretized by dividing them into adjacent cells as mentioned in Road representation section. The process of discretization was partially automatized. After manual drawing cell in the map, proper cell coordinates were automatically scanned and loaded to the model data structure.
+
 Adding cells of one line to the model (unique circle colour is used to distinguish cells from single lane):
 ```python
 green = [87, 193, 135] #rgb representation
@@ -178,17 +185,17 @@ To add a new blockade to the model, the following steps must be performed:
 
 ### Simulation steps
 In every simulation step, model.step() method is executed. It consists of three main substeps:
-  * lights change() method (changing lights colour if lights exist):
+  * lights _change()_ method (updating lights according to defined rules):
 ```python
 for l in self.lights:
    l.change()
 ```
-  * agent step() method execution (scanning for obstacles, updating route if needed, computing new acceleration, velocity and location):
+  * agent _step()_ method execution (scanning for obstacles, updating route if needed, computing new acceleration, velocity and location):
 ```python
 for a in self.agents:
    a.step()
 ```
-  * agent advance() method execution (updating position, acceleration and velocity):
+  * agent _advance()_ method execution (updating position, acceleration and velocity for all agents, based on values calculated in _step()_ method):
 ```python
 for a in self.agents:
    a.advance()
