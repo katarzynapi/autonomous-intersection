@@ -3,9 +3,9 @@
 The aim of the project is simulating natural-looking traffic flow on various kinds of intersections. To achieve this goal a multiagent discrete non-deterministic model was created. It is based on the extension of the Nagel-Schreckenberg model proposed in [this](https://link.springer.com/chapter/10.1007/978-3-319-32152-3_48?fbclid=IwAR09CeDY-FHudgaqjKouczsxdzxOOMsXno-OseYgVT_sb_aD0lgBrsfvBsY) article.
 
 ## Table of contents
-[Proposed model](https://github.com/katarzynapi/autonomous-intersection/blob/master/README.md#proposed-model)
+[Proposed model](https://github.com/katarzynapi/autonomous-intersection/blob/master/README.md#proposed-model):
 
-Road representation
+  * [Road representation](https://github.com/katarzynapi/autonomous-intersection/blob/master/README.md#road-representation)
 
 Cars movement
 
