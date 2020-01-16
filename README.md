@@ -11,11 +11,11 @@ The aim of the project is simulating natural-looking traffic flow on various kin
 
   * [Updating model](https://github.com/katarzynapi/autonomous-intersection/blob/master/README.md#updating-model)
 
-  * [Randomness in the model](https://github.com/katarzynapi/autonomous-intersection/blob/master/README.md#randomness-in-the model)
+  * [Randomness in the model](https://github.com/katarzynapi/autonomous-intersection/blob/master/README.md#randomness-in-the-model)
 
 [Implementation details](https://github.com/katarzynapi/autonomous-intersection/blob/master/README.md#implementation-details)
 
-[Simulation examples](https://github.com/katarzynapi/autonomous-intersection/blob/master/README.md#simulation-examples)
+[Simulation examples](https://github.com/katarzynapi/autonomous-intersection/blob/master/README.md#simulation-examples):
   * [Intersection with lights](https://github.com/katarzynapi/autonomous-intersection/blob/master/README.md#intersection-with-lights)
   * [Avoiding a blockade](https://github.com/katarzynapi/autonomous-intersection/blob/master/README.md#avoiding-a-blockade)
 [User guide](https://github.com/katarzynapi/autonomous-intersection/blob/master/README.md#user-guide)
