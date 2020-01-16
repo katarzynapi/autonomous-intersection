@@ -58,7 +58,7 @@ The simulation presents car movement on the crossing of two single-lane roads wi
 ![map](!https://raw.githubusercontent.com/katarzynapi/autonomous-intersection/master/pictures_report/map.png)
 
 Before performing simulation, the structure of roads was loaded to the model data structure as described in Map preparation section. Also lights were added to proper cells on the crossing entering points. An entering-point cell can have more than one light assigned. Every light is ascribed to a path, to which it applies. 
-![lights_location](!https://raw.githubusercontent.com/katarzynapi/autonomous-intersection/master/pictures_report/lights_location.png)
+[![N|Solid](https://raw.githubusercontent.com/katarzynapi/autonomous-intersection/master/pictures_report/lights_location.png)](https://raw.githubusercontent.com/katarzynapi/autonomous-intersection/master/pictures_report/lights_location.png)
 
 During the simulation, cars are generated randomly at the beginnings of roads. Each car has predefined:
 * destination and a path (a list of consecutive cells), which leads to this destination
