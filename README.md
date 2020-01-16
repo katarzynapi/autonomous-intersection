@@ -4,11 +4,17 @@ The aim of the project is simulating natural-looking traffic flow on various kin
 
 ## Table of contents
 [Proposed model](https://github.com/katarzynapi/autonomous-intersection/blob/master/README.md#proposed-model)
+
 Road representation
+
 Cars movement
+
 Updating model
+
 Randomness in the model
+
 [Implementation details](https://github.com/katarzynapi/autonomous-intersection/blob/master/README.md#implementation-details)
+
 [Simulation examples](https://github.com/katarzynapi/autonomous-intersection/blob/master/README.md#simulation-examples)
 Intersection with lights
 Avoiding a blockade
