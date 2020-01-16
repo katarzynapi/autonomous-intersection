@@ -55,7 +55,7 @@ pip install <name_of_package>
 ### Intersection with lights
 #### Overview
 The simulation presents car movement on the crossing of two single-lane roads with lights. It is presented on the exemplary map fragment taken from OpenStreetMap.
-![map](!https://raw.githubusercontent.com/katarzynapi/autonomous-intersection/master/pictures_report/map.png)
+[![N|Solid](https://raw.githubusercontent.com/katarzynapi/autonomous-intersection/master/pictures_report/map.png)](https://raw.githubusercontent.com/katarzynapi/autonomous-intersection/master/pictures_report/map.png)
 
 Before performing simulation, the structure of roads was loaded to the model data structure as described in Map preparation section. Also lights were added to proper cells on the crossing entering points. An entering-point cell can have more than one light assigned. Every light is ascribed to a path, to which it applies. 
 [![N|Solid](https://raw.githubusercontent.com/katarzynapi/autonomous-intersection/master/pictures_report/lights_location.png)](https://raw.githubusercontent.com/katarzynapi/autonomous-intersection/master/pictures_report/lights_location.png)
@@ -85,14 +85,17 @@ The second simulation was performed do show blockades avoiding. … Zobaczymy, c
 All project files are located on github [AutonomousIntersection](https://github.com/katarzynapi/autonomous-intersection). Clone the repository or download files directly from github page. 
 
 ### Running examples
-You can open the project in an IDE or run it directly in a console. To run the simulation execute proper main_*.py file. If you use a console, go to catalog with main file and execute ‘’’sh python main_*.py’’’. List of exemplary main files:
-*main_lights.py
-*main_blocks.py
+You can open the project in an IDE or run it directly in a console. To run the simulation execute proper __main_*.py__ file. If you use a console, go to catalog with main file and execute ```sh
+python main_*.py
+```
+List of exemplary main files:
+  * main_lights.py
+  * main_blocks.py
 
 #### Map preparation
 The road fragments were discretized by dividing them into adjacent cells as mentioned in Road representation section. The process of discretization was partially automatized. After manual drawing cell in the map, proper cell coordinates were automatically scanned and loaded to the model data structure.
 Adding cells of one line to the model (unique circle colour is used to distinguish cells from single lane):
-‘’’python
+```python
 green = [87, 193, 135] #rgb representation
 for i, row in enumerate(img):
     for j, col in enumerate(row):
@@ -103,10 +106,10 @@ for i, row in enumerate(img):
             cv2.imshow('image', clean_img)
             cv2.waitKey(1)
             model.grid.addCell(j, i, autointer.enums.CellType.ROAD)
-‘’’
+```
 Adding cells neighbours:
-‘’’python
-# add cells' f and b neighbours
+```python
+#add cells' f and b neighbours
 for i, cell in enumerate(model.grid.cells):
     if cell.if_border == autointer.enums.IfBorder.INPUT:
         cell.f_neighbour = model.grid.cells[i+1]
@@ -115,19 +118,19 @@ for i, cell in enumerate(model.grid.cells):
         cell.b_neighbour = model.grid.cells[i-1]
     elif cell.if_border == autointer.enums.IfBorder.OUTPUT:
         cell.b_neighbour = model.grid.cells[i-1]
-# add cells' l and r neighbours
+#add cells' l and r neighbours
 for o_cell, g_cell in zip (model.grid.cells[:int(cells_number/2)], model.grid.cells[int(cells_number/2):]):
     o_cell.l_neighbour = g_cell
     g_cell.r_neighbour = o_cell
-‘’’
+```
 Adding input and output cells to the model:
-‘’’python
+```python
 for cell in model.grid.cells:
     if cell.if_border == autointer.enums.IfBorder.INPUT:
         model.grid.inputs.append(cell)
     if cell.if_border == autointer.enums.IfBorder.OUTPUT:
         model.grid.outputs.append(cell)
-‘’’
+```
 In order to save time, the whole process is not performed in every simulation execution. The model with map structure is created once and then serialized (using _dill_ library) and stored in a file (model*.d). The file can then be deserialized and used in every simulation execution.
 Serialization and deserialization:
 ```python
@@ -161,17 +164,17 @@ In every simulation step, model.step() method is executed. It consists of three 
   * changing lights (if exist):
 ```python
 for l in self.lights:
-l.change()
+   l.change()
 ```
   * agent step() method execution (scanning for obstacles, updating route if needed, computing new acceleration, velocity and location):
 ```python
 for a in self.agents:
-a.step()
+   a.step()
 ```
   * agent advance() method execution (updating position, acceleration and velocity):
 ```python
 for a in self.agents:
-            a.advance()
+   a.advance()
 ```
 
 ## Summary
