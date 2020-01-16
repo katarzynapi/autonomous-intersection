@@ -97,11 +97,14 @@ Lights operation is based on the following sequence of paths, which have respect
 After every step of the above-mentioned sequence, all lights are changed to red for a short period (2 seconds). It is done in order to avoid collisions of cars, which enter the crossing with cars, which haven’t already left the crossing. The whole sequence is looped.
 Exemplary state during simulation:
   * going straight with turning right (1st step in sequence)
-[![N|Solid](https://raw.githubusercontent.com/katarzynapi/autonomous-intersection/master/pictures_report/lights_location.png)](https://raw.githubusercontent.com/katarzynapi/autonomous-intersection/master/pictures_report/right.png)
+  
+[![N|Solid](https://raw.githubusercontent.com/katarzynapi/autonomous-intersection/master/pictures_report/right.png)](https://raw.githubusercontent.com/katarzynapi/autonomous-intersection/master/pictures_report/right.png)
   * turning left (2nd step in sequence):
-[![N|Solid](https://raw.githubusercontent.com/katarzynapi/autonomous-intersection/master/pictures_report/lights_location.png)](https://raw.githubusercontent.com/katarzynapi/autonomous-intersection/master/pictures_report/left.png)
+  
+[![N|Solid](https://raw.githubusercontent.com/katarzynapi/autonomous-intersection/master/pictures_report/left.png)](https://raw.githubusercontent.com/katarzynapi/autonomous-intersection/master/pictures_report/left.png)
   * all lights red (state between all sequence steps):
-[![N|Solid](https://raw.githubusercontent.com/katarzynapi/autonomous-intersection/master/pictures_report/lights_location.png)](https://raw.githubusercontent.com/katarzynapi/autonomous-intersection/master/pictures_report/lights_location.png)
+  
+[![N|Solid](https://raw.githubusercontent.com/katarzynapi/autonomous-intersection/master/pictures_report/all_red.png)](https://raw.githubusercontent.com/katarzynapi/autonomous-intersection/master/pictures_report/all_red.png)
 
 ### Avoiding a blockade
 The second simulation was performed do show blockades avoiding. … Zobaczymy, czy coś się jeszcze wykluje
