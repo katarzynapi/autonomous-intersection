@@ -51,7 +51,7 @@ Description of actions:
 
 ### Updating model
 
-Simulation is performed by calling model’s method step() in a loop. This method consists of updating lights and  calling_step()_ (see [Cars movement](https://github.com/katarzynapi/autonomous-intersection/blob/master/README.md#cars-movement))and _advance()_ methods for all agents. More details are described [here](https://github.com/katarzynapi/autonomous-intersection/blob/master/README.md#simulation-steps).
+Simulation is performed by calling model’s method step() in a loop. This method consists of updating lights and  calling _step()_ (see [Cars movement](https://github.com/katarzynapi/autonomous-intersection/blob/master/README.md#cars-movement)) and _advance()_ methods for all agents. More details are described [here](https://github.com/katarzynapi/autonomous-intersection/blob/master/README.md#simulation-steps).
 This way of updating the model is based on the idea used in [SimultanousActivation](https://mesa.readthedocs.io/en/master/apis/time.html#mesa.time.SimultaneousActivation) scheduler from Mesa library (however, we don’t use Mesa). It requires that each agent has two methods: step and advance. step() activates the agent and stages any necessary changes, but does not apply them yet. advance() then applies the changes.
 
 ### Randomness in the model
