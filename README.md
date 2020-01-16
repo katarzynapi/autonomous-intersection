@@ -51,7 +51,7 @@ Description of actions:
 
 ### Updating model
 
-Simulation is performed by calling model’s method step() in the loop. This method consists of three parts. First, traffic lights are updated according to defined rules. Next, for all agents their _step()_ method is called (see the previous section **Car movement**). Finally for all agents method _advance()_ is called. It ascribes values computed in method _step()_ to the appropriate variables.
+Simulation is performed by calling model’s method step() in a loop. This method consists of updating lights and  calling_step()_ (see [Cars movement](https://github.com/katarzynapi/autonomous-intersection/blob/master/README.md#cars-movement))and _advance()_ methods for all agents. More details are described [here](https://github.com/katarzynapi/autonomous-intersection/blob/master/README.md#simulation-steps).
 This way of updating the model is based on the idea used in [SimultanousActivation](https://mesa.readthedocs.io/en/master/apis/time.html#mesa.time.SimultaneousActivation) scheduler from Mesa library (however, we don’t use Mesa). It requires that each agent has two methods: step and advance. step() activates the agent and stages any necessary changes, but does not apply them yet. advance() then applies the changes.
 
 ### Randomness in the model
@@ -185,17 +185,17 @@ To add a new blockade to the model, the following steps must be performed:
 
 ### Simulation steps
 In every simulation step, model.step() method is executed. It consists of three main substeps:
-  * lights change() method (changing lights colour if lights exist):
+  * lights _change()_ method (updating lights according to defined rules):
 ```python
 for l in self.lights:
    l.change()
 ```
-  * agent step() method execution (scanning for obstacles, updating route if needed, computing new acceleration, velocity and location):
+  * agent _step()_ method execution (scanning for obstacles, updating route if needed, computing new acceleration, velocity and location):
 ```python
 for a in self.agents:
    a.step()
 ```
-  * agent advance() method execution (updating position, acceleration and velocity):
+  * agent _advance()_ method execution (updating position, acceleration and velocity for all agents, based on values calculated in _step()_ method):
 ```python
 for a in self.agents:
    a.advance()
