@@ -23,9 +23,9 @@ In step() method car agent perform following actions:
 4. computing new velocity
 5. computing new location
 
-
+The following actions description:
 1. Car agent obtains information about obstacles on it’s path from the cells of the path.
-2. Here the behaviour of the car depends on the type of the current path. If the path type is MAIN the path will be changed only if there is a blocade on the current path and there is another path available. If the path type is OPPOSITE, which means that the car is going against the tide, it will try to get back to MAIN path. If the path type is ALTERNATIVE, which means that the car changed lane on multi-lane road, it will be changed only if car cannot obtain the border of the map without changing lane i.e. there is an obstacle on the path or path ends before some crossroads.
+2. Here the behaviour of the car depends on the type of the current path. If the path type is MAIN the path will be changed only if there is a blockade on the current path and there is another path available. If the path type is OPPOSITE, which means that the car is going against the tide, it will try to get back to MAIN path. If the path type is ALTERNATIVE, which means that the car changed lane on multi-lane road, it will be changed only if car cannot obtain the border of the map without changing lane i.e. there is an obstacle on the path or path ends before some crossroads.
 3. First, the distance to the nearest obstacle on the path is calculated. It may be a blockade, red traffic lights or other agent on the path. On the basis of the distance to the obstacle new acceleration is set (if the obstacle is moving distance is increased by its velocity). If the distance is 0, the car shouldn’t move. If the distance is too short to stop the car won’t try to do this (imagine a driver who spotted light changing to red but was too close and just passed it). If there is just enough space to stop the car starts slowing down by setting acceleration to -1. If the obstacle is seen in the distance the car keeps constant velocity (acceleration = 0). If the obstacle is far away or there are no obstacles at all, the car’s acceleration is set to 1 to achieve velocity of  14 m/s (50 km/h) or if the velocity is already this high it stays constant.
 4. Computed acceleration is added to the current velocity to obtain new velocity. There is also a mechanism which prevents setting velocity to negative values.
 5. Distance to go equals the velocity. This is because of treating movement at the moment as uniform motion.
@@ -127,10 +127,10 @@ for cell in model.grid.cells:
 ‘’’
 In order to save time, the whole process is not performed in every simulation execution. The model with map structure is created once and then serialized (using _dill_ library) and stored in a file (model*.d). The file can then be deserialized and used in every simulation execution.
 Serialization and deserialization:
-‘’’python
+```python
 dill.dump( model, open( "model.d", "wb" ) ) #serialization
 model = dill.load( open( "model.d", "rb" ) ) #deserialization
-‘’’
+```
 ### Cars generation and paths ascribing
 To add a new car (agent), the following steps must be performed:
 *agent object generation: ‘model.generateAgent()’
@@ -140,21 +140,36 @@ To add a new car (agent), the following steps must be performed:
 
 ### Adding traffic lights
 To add a new light to the model, the following steps must be performed:
-*lights object generation: ‘model.lights.append(autointer.Lights())’
-*specifying lights location: ‘model.lights[-1].location = model.grid.cells[cell_idx]’
-*ascribing list of paths, to which lights are related: ‘model.lights[-1].connected_paths = [path1, path2, path3]’
-*initializing lights colour (green is default): ‘)model.lights[-1].colour = enums.Colour.RED’
-*assigning lights as an obstacle on the proper cell (adding to its list of obstacles): ‘model.grid.cells[cell_idx].obstacles.append(model.lights[-1])’
+  * lights object generation: `model.lights.append(autointer.Lights())`
+  * specifying lights location: `model.lights[-1].location = model.grid.cells[cell_idx]`
+  * ascribing list of paths, to which lights are related: `model.lights[-1].connected_paths = [path1, path2, path3]`
+  * initializing lights colour (green is default): `model.lights[-1].colour = enums.Colour.RED`
+  * assigning lights as an obstacle on the proper cell (adding to its list of obstacles): `model.grid.cells[cell_idx].obstacles.append(model.lights[-1])`
 
 ### Adding blockade
 To add a new blockade to the model, the following steps must be performed:
-*blockade object generation: ‘model.obstacles.append(autointer.Blockade())’
-*specifying blockade location: ‘model.obstacles[-1].location = model.grid.cells[cell_idx]’
-*ascribing list of paths, to which the blockade is related: ‘model.obstacles[-1].connected_paths = [path1, path2, path3]’
-*assigning blockade as an obstacle on the proper cell (adding to its list of obstacles): ‘model.grid.cells[cell_idx].obstacles.append(model.obstacles[-1])’
+  * blockade object generation: `model.obstacles.append(autointer.Blockade())`
+  * specifying blockade location: `model.obstacles[-1].location = model.grid.cells[cell_idx]`
+  * ascribing list of paths, to which the blockade is related: `model.obstacles[-1].connected_paths = [path1, path2, path3]`
+  * assigning blockade as an obstacle on the proper cell (adding to its list of obstacles): `model.grid.cells[cell_idx].obstacles.append(model.obstacles[-1])`
 
-### Simulation
-tutaj opis metody step() modelu
+### Simulation step
+In every simulation step, model.step() method is executed. It consists of three main substeps:
+  * changing lights (if exist):
+```python
+for l in self.lights:
+l.change()
+```
+  * agent step() method execution (scanning for obstacles, updating route if needed, computing new acceleration, velocity and location):
+```python
+for a in self.agents:
+a.step()
+```
+  * agent advance() method execution (updating position, acceleration and velocity):
+```python
+for a in self.agents:
+            a.advance()
+```
 
 ## Summary
 
