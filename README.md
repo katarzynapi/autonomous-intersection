@@ -1,8 +1,5 @@
 # Autonomous Intersection
 
-# TODO
-- czy podałam poprawne możliwe przyspieszenia i opóźnienia?
-
 The aim of the project is simulating natural-looking traffic flow on various kinds of intersections. To achieve this goal a multiagent discrete non-deterministic model was created. It is based on the extension of the Nagel-Schreckenberg model proposed in [this](https://link.springer.com/chapter/10.1007/978-3-319-32152-3_48?fbclid=IwAR09CeDY-FHudgaqjKouczsxdzxOOMsXno-OseYgVT_sb_aD0lgBrsfvBsY) article.
 
 ## Table of contents
@@ -23,7 +20,7 @@ In step() method car agent perform following actions:
 4. computing new velocity
 5. computing new location
 
-The following actions description:
+Description of actions:
 1. Car agent obtains information about obstacles on it’s path from the cells of the path.
 2. Here the behaviour of the car depends on the type of the current path. If the path type is MAIN the path will be changed only if there is a blockade on the current path and there is another path available. If the path type is OPPOSITE, which means that the car is going against the tide, it will try to get back to MAIN path. If the path type is ALTERNATIVE, which means that the car changed lane on multi-lane road, it will be changed only if car cannot obtain the border of the map without changing lane i.e. there is an obstacle on the path or path ends before some crossroads.
 3. First, the distance to the nearest obstacle on the path is calculated. It may be a blockade, red traffic lights or other agent on the path. On the basis of the distance to the obstacle new acceleration is set (if the obstacle is moving distance is increased by its velocity). If the distance is 0, the car shouldn’t move. If the distance is too short to stop the car won’t try to do this (imagine a driver who spotted light changing to red but was too close and just passed it). If there is just enough space to stop the car starts slowing down by setting acceleration to -1. If the obstacle is seen in the distance the car keeps constant velocity (acceleration = 0). If the obstacle is far away or there are no obstacles at all, the car’s acceleration is set to 1 to achieve velocity of  14 m/s (50 km/h) or if the velocity is already this high it stays constant.
@@ -32,31 +29,37 @@ The following actions description:
 
 ### Updating model
 
-Simulation is performed by calling model’s method step() in the loop. This method consists of three parts. First, traffic lights are updated according to defined rules. Next, for all agents their step() method is called (see the previous section “car movement”). Finally for all agents method advance() is called. It ascribes values computed in method step to the appropriate variables.
+Simulation is performed by calling model’s method step() in the loop. This method consists of three parts. First, traffic lights are updated according to defined rules. Next, for all agents their step() method is called (see the previous section **Car movement**). Finally for all agents method advance() is called. It ascribes values computed in method step to the appropriate variables.
 This way of updating the model is based on the idea used in [SimultanousActivation](https://mesa.readthedocs.io/en/master/apis/time.html#mesa.time.SimultaneousActivation) scheduler from Mesa library (however, we don’t use Mesa). It requires that each agent has two methods: step and advance. step() activates the agent and stages any necessary changes, but does not apply them yet. advance() then applies the changes.
 
 ### Randomness in the model
-
-tutaj co się dzieje losowo u nas
-- generacja aut
-- wybieranie trasy
+In the model simulation the following parameters may be random:
+  * car generation (time)
+  * path selection for generated car
+  * selection of cars colour
+  * selection of cars length
 
 ## Implementation details
 The project was implemented in Python 3.0. The following packages were used:
-*cv2 - visualization
-*numpy - support for arrays management
-*dill - object serialization and deserialization
-*random - generating random numbers and choosing random list elements
-All above-mentioned packages can be installed using ’’’sh pip install <name_of_package>’’’ command.
+  * __cv2__ - visualization
+  * __numpy__ - support for arrays management
+  * __dill__ - object serialization and deserialization
+  * __random__ - generating random numbers and choosing random list elements
+All above-mentioned packages can be installed using command:
+```sh
+pip install <name_of_package>
+```
 
 ## Simulation examples
 
 ### Intersection with lights
 #### Overview
 The simulation presents car movement on the crossing of two single-lane roads with lights. It is presented on the exemplary map fragment taken from OpenStreetMap.
-!https://github.com/katarzynapi/autonomous-intersection/blob/master/pictures_report/map.png
+![alt text](!https://github.com/katarzynapi/autonomous-intersection/blob/master/pictures_report/map.png "Logo Title Text 1")
+
 Before performing simulation, the structure of roads was loaded to the model data structure as described in Map preparation section. Also lights were added to proper cells on the crossing entering points. An entering-point cell can have more than one light assigned. Every light is ascribed to a path, to which it applies. 
-!https://github.com/katarzynapi/autonomous-intersection/blob/master/pictures_report/lights_location.png
+![alt text](!!https://github.com/katarzynapi/autonomous-intersection/blob/master/pictures_report/lights_location.png "Logo Title Text 1")
+
 During the simulation, cars are generated randomly at the beginnings of roads. Each car has predefined:
 * destination and a path (a list of consecutive cells), which leads to this destination
 * color
@@ -79,7 +82,7 @@ The second simulation was performed do show blockades avoiding. … Zobaczymy, c
 ## User guide
 
 ### Downloading project
-All project files are located on github (https://github.com/katarzynapi/autonomous-intersection). Clone the repository or download files directly from github page. 
+All project files are located on github [AutonomousIntersection](https://github.com/katarzynapi/autonomous-intersection). Clone the repository or download files directly from github page. 
 
 ### Running examples
 You can open the project in an IDE or run it directly in a console. To run the simulation execute proper main_*.py file. If you use a console, go to catalog with main file and execute ‘’’sh python main_*.py’’’. List of exemplary main files:
