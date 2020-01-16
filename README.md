@@ -117,6 +117,7 @@ List of exemplary main files:
 
 #### Map preparation
 The road fragments were discretized by dividing them into adjacent cells as mentioned in Road representation section. The process of discretization was partially automatized. After manual drawing cell in the map, proper cell coordinates were automatically scanned and loaded to the model data structure.
+
 Adding cells of one line to the model (unique circle colour is used to distinguish cells from single lane):
 ```python
 green = [87, 193, 135] #rgb representation
