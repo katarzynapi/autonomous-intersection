@@ -96,6 +96,9 @@ Lights operation is based on the following sequence of paths, which have respect
 
 After every step of the above-mentioned sequence, all lights are changed to red for a short period (2 seconds). It is done in order to avoid collisions of cars, which enter the crossing with cars, which haven’t already left the crossing. The whole sequence is looped.
 
+Interpretation of the lights located on the map:
+[![N|Solid](https://raw.githubusercontent.com/katarzynapi/autonomous-intersection/master/pictures_report/right.png)](https://raw.githubusercontent.com/katarzynapi/autonomous-intersection/master/pictures_report/lights_interpret.png)
+
 Exemplary states during simulation:
   * going **straight** and turning **right** (1st step in sequence)
   
@@ -108,7 +111,13 @@ Exemplary states during simulation:
 [![N|Solid](https://raw.githubusercontent.com/katarzynapi/autonomous-intersection/master/pictures_report/all_red.png)](https://raw.githubusercontent.com/katarzynapi/autonomous-intersection/master/pictures_report/all_red.png)
 
 ### Avoiding a blockade
-The second simulation was performed do show blockades avoiding. … Zobaczymy, czy coś się jeszcze wykluje
+The second simulation was performed do show blockades avoiding. It presents car movement on a double-lane road with two obstacles. There is one obstacle per one lane, what is presented on the exemplary map fragment.
+[![N|Solid](https://raw.githubusercontent.com/katarzynapi/autonomous-intersection/master/pictures_report/all_red.png)](https://raw.githubusercontent.com/katarzynapi/autonomous-intersection/master/pictures_report/blockade_map.png)
+
+According to rules described in [Cars movement](https://github.com/katarzynapi/autonomous-intersection/blob/master/README.md#cars-movement), cars are changing lanes in order to avoid blockades. Their changing currently occupied lane only if there is some obstacle on their near path fragment.
+
+Exemplary state during simulation:
+[![N|Solid](https://raw.githubusercontent.com/katarzynapi/autonomous-intersection/master/pictures_report/all_red.png)](https://raw.githubusercontent.com/katarzynapi/autonomous-intersection/master/pictures_report/blockade.png)
 
 ## User guide
 
