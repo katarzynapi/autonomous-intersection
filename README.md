@@ -100,7 +100,7 @@ After every step of the above-mentioned sequence, all lights are changed to red 
 
 Interpretation of the lights located on the map:
 
-[![N|Solid](https://raw.githubusercontent.com/katarzynapi/autonomous-intersection/master/pictures_report/right.png)](https://raw.githubusercontent.com/katarzynapi/autonomous-intersection/master/pictures_report/lights_interpret.png)
+[![N|Solid](https://raw.githubusercontent.com/katarzynapi/autonomous-intersection/master/pictures_report/lights_interpret.png)](https://raw.githubusercontent.com/katarzynapi/autonomous-intersection/master/pictures_report/lights_interpret.png)
 
 Exemplary states during simulation:
   * going **straight** and turning **right** (1st step in sequence)
