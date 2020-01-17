@@ -73,6 +73,22 @@ All above-mentioned packages can be installed using command:
 pip install <name_of_package>
 ```
 
+Classes used in the project (_autonomousIntersection.py_ file):
+  * Cell (disretized elements of the road)
+  * Grid (the whole set of cells)
+  * Path (list of consecutive cells from input cell to output cell)
+  * Coordinates (location on the map)
+  * Obstacle (obstacle on the road assigned to cell and path)
+  * Lights(Obstacle) (lights on the road)
+  * Blockade(Obstacle) (static, permanent obstacles on the road)
+  * GeneralAgent (every car moving along the roads)
+  * IntersectionModel (stores the whole model)
+
+Enums used in the project (_enums.py_ file):
+  * Colour (RED and GREEN colour of lights)
+  * IfBorder (NOT, INPUT or OUTPUT type of cell)
+  * PathType (MAIN, ALTERNATIVE or OPPOSITE type of path)
+
 ## Simulation examples
 
 ### Intersection with lights
